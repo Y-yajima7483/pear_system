@@ -1,0 +1,771 @@
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* 基本背景・前景色 */
+  --bg: #ffffff;
+
+  /* Primary Colors - 信頼性のある青系 */
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --primary-active: #1d4ed8;
+  --primary-light: #60a5fa;
+  --primary-lighter: #93c5fd;
+  --primary-dark: #1e40af;
+
+  /* Error Colors - 注意を引く赤系 */
+  --error: #ef4444;
+  --error-hover: #dc2626;
+  --error-active: #b91c1c;
+  --error-light: #f87171;
+  --error-lighter: #fca5a5;
+  --error-dark: #991b1b;
+  --error-bg: #fef2f2;
+
+  /* Success Colors - 梨の葉をイメージした緑系 */
+  --success: #22c55e;
+  --success-hover: #16a34a;
+  --success-active: #15803d;
+  --success-light: #4ade80;
+  --success-lighter: #86efac;
+  --success-dark: #166534;
+  --success-bg: #f0fdf4;
+
+  /* Warning Colors - 梨の実をイメージした黄系 */
+  --warning: #eab308;
+  --warning-hover: #ca8a04;
+  --warning-active: #a16207;
+  --warning-light: #facc15;
+  --warning-lighter: #fde047;
+  --warning-dark: #854d0e;
+  --warning-bg: #fefce8;
+
+  /* Info Colors - 情報提供用の青系 */
+  --info: #06b6d4;
+  --info-hover: #0891b2;
+  --info-active: #0e7490;
+  --info-light: #22d3ee;
+  --info-lighter: #67e8f9;
+  --info-dark: #155e75;
+  --info-bg: #f0fdfa;
+
+  /* Pear Theme Colors - 梨特有の色 */
+  --pear-fruit: #d4d648;  /* 熟した梨の黄色 */
+  --pear-skin: #a8b545;   /* 梨の皮の黄緑色 */
+  --pear-leaf: #7cb342;   /* 梨の葉の緑色 */
+  --pear-branch: #6d4c41; /* 梨の枝の茶色 */
+
+  /* Gray Scale - 汎用グレースケール */
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+
+  /* Border Colors */
+  --border-default: #323334;
+  --border-hover: #9ca3af;
+  --border-focus: var(--primary);
+  /* オーバーレイ */
+  --overlay: rgba(0, 0, 0, 0.6);
+
+  /* Shadow Colors */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
+  /* Legacy compatibility */
+  --accent: oklch(0.968 0.007 247.896);
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.129 0.042 264.695);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.129 0.042 264.695);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.129 0.042 264.695);
+  --primary-foreground: oklch(0.984 0.003 247.858);
+  --secondary: oklch(0.968 0.007 247.896);
+  --secondary-foreground: oklch(0.208 0.042 265.755);
+  --muted: oklch(0.968 0.007 247.896);
+  --muted-foreground: oklch(0.554 0.046 257.417);
+  --accent-foreground: oklch(0.208 0.042 265.755);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.929 0.013 255.508);
+  --input: oklch(0.929 0.013 255.508);
+  --ring: oklch(0.704 0.04 256.788);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.984 0.003 247.858);
+  --sidebar-foreground: oklch(0.129 0.042 264.695);
+  --sidebar-primary: oklch(0.208 0.042 265.755);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.968 0.007 247.896);
+  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
+  --sidebar-border: oklch(0.929 0.013 255.508);
+  --sidebar-ring: oklch(0.704 0.04 256.788);
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+.dark {
+  --background: oklch(0.129 0.042 264.695);
+  --foreground: oklch(0.984 0.003 247.858);
+  --card: oklch(0.208 0.042 265.755);
+  --card-foreground: oklch(0.984 0.003 247.858);
+  --popover: oklch(0.208 0.042 265.755);
+  --popover-foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.929 0.013 255.508);
+  --primary-foreground: oklch(0.208 0.042 265.755);
+  --secondary: oklch(0.279 0.041 260.031);
+  --secondary-foreground: oklch(0.984 0.003 247.858);
+  --muted: oklch(0.279 0.041 260.031);
+  --muted-foreground: oklch(0.704 0.04 256.788);
+  --accent: oklch(0.279 0.041 260.031);
+  --accent-foreground: oklch(0.984 0.003 247.858);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.551 0.027 264.364);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.208 0.042 265.755);
+  --sidebar-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.279 0.041 260.031);
+  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.551 0.027 264.364);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* 基本背景・前景色 */
+    --bg: #0a0a0a;
+
+    /* Primary Colors - ダークモード用 */
+    --primary: #60a5fa;
+    --primary-hover: #93c5fd;
+    --primary-active: #bfdbfe;
+    --primary-light: #93c5fd;
+    --primary-lighter: #dbeafe;
+    --primary-dark: #2563eb;
+
+    /* Error Colors - ダークモード用 */
+    --error: #f87171;
+    --error-hover: #fca5a5;
+    --error-active: #fecaca;
+    --error-light: fca5a5;
+    --error-lighter: #fee2e2;
+    --error-dark: #ef4444;
+    --error-bg: #450a0a;
+
+    /* Success Colors - ダークモード用 */
+    --success: #4ade80;
+    --success-hover: #86efac;
+    --success-active: #bbf7d0;
+    --success-light: #86efac;
+    --success-lighter: #d1fae5;
+    --success-dark: #22c55e;
+    --success-bg: #052e16;
+
+    /* Warning Colors - ダークモード用 */
+    --warning: #facc15;
+    --warning-hover: #fde047;
+    --warning-active: #fef08a;
+    --warning-light: #fde047;
+    --warning-lighter: #fef3c7;
+    --warning-dark: #eab308;
+    --warning-bg: #451a03;
+
+    /* Info Colors - ダークモード用 */
+    --info: #22d3ee;
+    --info-hover: #67e8f9;
+    --info-active: #a5f3fc;
+    --info-light: #67e8f9;
+    --info-lighter: #cffafe;
+    --info-dark: #06b6d4;
+    --info-bg: #083344;
+
+    /* Pear Theme Colors - ダークモード用 */
+    --pear-fruit: #e5e866;
+    --pear-skin: #b8c655;
+    --pear-leaf: #8bc34a;
+    --pear-branch: #8d6e63;
+
+    /* Gray Scale - ダークモード用 */
+    --gray-50: #111827;
+    --gray-100: #1f2937;
+    --gray-200: #374151;
+    --gray-300: #4b5563;
+    --gray-400: #6b7280;
+    --gray-500: #9ca3af;
+    --gray-600: #d1d5db;
+    --gray-700: #e5e7eb;
+    --gray-800: #f3f4f6;
+    --gray-900: #f9fafb;
+
+    /* Border Colors - ダークモード用 */
+    --border-default: #374151;
+    --border-hover: #4b5563;
+    --border-focus: var(--primary);
+
+    /* Legacy compatibility */
+    --accent: var(--primary);
+  }
+}
+
+/* Body */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", Arial, sans-serif;
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
+input[type="time"]::-webkit-inner-spin-button,
+input[type="time"]::-webkit-clear-button {
+  display: none;
+}
+
+.text-field {
+  --pad: .45rem;
+  position: relative;
+  width: auto;
+}
+
+.text-field > label {
+  position: absolute;
+  left: var(--pad);
+  top: var(--pad);
+  background: var(--bg);
+  padding-inline: .3em;
+  transition: transform 200ms;
+  pointer-events: none;
+  transform-origin: left;
+  translate: -.3em;
+}
+
+.text-field > input {
+  padding: var(--pad);
+  border-radius: 8px;
+  background-color: var(--bg);
+  border: 1px solid var(--border-default);
+  color: inherit;
+  width: 100%;
+  outline: none;
+}
+
+.text-field > input::placeholder {
+  opacity: 0;
+}
+
+.text-field > input:focus + label,
+.text-field > input:not(:placeholder-shown) + label {
+  transform: translateX(-.3rem) translateY(calc(-84% - var(--pad))) scale(.9);
+}
+
+.text-field > input:focus + label {
+  color: var(--primary);
+}
+
+.text-field > input:focus {
+  border-color: var(--primary);
+}
+
+.text-field__suffix {
+  position: absolute;
+  right: var(--pad);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  pointer-events: none;
+  @apply text-sm;
+}
+
+.text-field.error {
+  @apply mb-6
+}
+
+.text-field.error .text-field__suffix {
+  color: var(--error);
+}
+
+.text-field.error > input,
+.text-field.error > label,
+.text-field.error> input:focus + label,
+.text-field.error > input:not(:placeholder-shown) + label {
+  color: var(--error);
+  border-color: var(--error);
+}
+
+.text-field.error > p {
+  @apply text-sm font-medium text-red-500 absolute mt-1 pl-1;
+}
+
+/* TextArea Field */
+.text-area {
+  --pad: .45rem;
+  position: relative;
+  width: auto;
+}
+
+.text-area > label {
+  position: absolute;
+  left: var(--pad);
+  top: var(--pad);
+  background: var(--bg);
+  padding-inline: .3em;
+  transition: transform 200ms;
+  pointer-events: none;
+  transform-origin: left;
+  translate: -.3em;
+}
+
+.text-area > textarea {
+  padding: var(--pad);
+  border-radius: 8px;
+  background-color: var(--bg);
+  border: 1px solid var(--border-default);
+  color: inherit;
+  width: 100%;
+  outline: none;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.text-area > textarea::placeholder {
+  opacity: 0;
+}
+
+.text-area > textarea:focus + label,
+.text-area > textarea:not(:placeholder-shown) + label {
+  transform: translateX(-.3rem) translateY(calc(-84% - var(--pad))) scale(.9);
+}
+
+.text-area > textarea:focus + label {
+  color: var(--primary);
+}
+
+.text-area > textarea:focus {
+  border-color: var(--primary);
+}
+
+.text-area__suffix {
+  position: absolute;
+  right: var(--pad);
+  bottom: var(--pad);
+  z-index: 1;
+  pointer-events: none;
+  @apply text-sm;
+}
+
+.text-area.error .text-area__suffix {
+  color: var(--error);
+}
+
+.text-area.error > textarea,
+.text-area.error > label,
+.text-area.error> textarea:focus + label,
+.text-area.error > textarea:not(:placeholder-shown) + label {
+  color: var(--error);
+  border-color: var(--error);
+}
+
+.text-area.error > p {
+  @apply text-sm font-medium text-red-500 absolute mt-1 pl-1;
+}
+
+/* Select Field */
+.select-field {
+  --pad: .45rem;
+  position: relative;
+  width: auto;
+}
+
+.select-field > label {
+  position: absolute;
+  left: var(--pad);
+  top: var(--pad);
+  background: var(--bg);
+  padding-inline: .3em;
+  transition: transform 200ms;
+  pointer-events: none;
+  transform-origin: left;
+  translate: -.3em;
+}
+
+.select-field > .select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--pad);
+  border-radius: 8px;
+  background-color: var(--bg);
+  border: 1px solid gray;
+  color: inherit;
+  width: 100%;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+}
+
+.select-field > .select-trigger > .select-value {
+  flex: 1;
+  text-align: left;
+}
+
+.select-field > .select-trigger > .select-value.placeholder {
+  opacity: 0;
+}
+
+.select-field > .select-trigger > .select-icon {
+  width: 1rem;
+  height: 1rem;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.select-field > .select-trigger[aria-expanded="true"] {
+  border-color: var(--primary);
+}
+
+.select-field > .select-trigger[aria-expanded="true"] + label {
+  color: var(--primary);
+}
+.select-field.error > .select-trigger[aria-expanded="true"] + label {
+  color: var(--error);
+}
+.select-field > .select-trigger.has-value + label,
+.select-field > label.selected {
+  transform: translateX(-.3rem) translateY(calc(-84% - var(--pad)))
+}
+
+.select-field > .select-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background-color: var(--bg);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  box-shadow: var(--shadow-md);
+  z-index: 50;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.select-field > .select-dropdown > .select-option {
+  padding: 0.5rem var(--pad);
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.select-field > .select-dropdown > .select-option:hover {
+  background-color: var(--gray-100);
+}
+
+.select-field > .select-dropdown > .select-option:active {
+  background-color: var(--gray-200);
+}
+
+.select-field.error > .select-trigger,
+.select-field.error > label {
+  color: var(--error);
+  border-color: var(--error);
+}
+
+.select-field.error > p {
+  @apply text-sm font-medium text-red-500 absolute mt-1 pl-1;
+}
+
+/* DatePciker */
+.date-picker {
+  --pad: .45rem;
+  position: relative;
+  width: auto;
+}
+
+.date-picker .date-picker-label {
+  position: absolute;
+  left: var(--pad);
+  top: var(--pad);
+  background: var(--bg);
+  padding-inline: .3em;
+  transition: transform 200ms;
+  pointer-events: none;
+  transform-origin: left;
+  translate: -.3em;
+}
+
+.date-picker .date-picker-input {
+  padding: var(--pad);
+  border-radius: 8px;
+  background-color: var(--bg);
+  border: 1px solid var(--border-default);
+  color: inherit;
+  width: 100%;
+  outline: none;
+  @apply w-full flex items-center justify-between;
+}
+
+.date-picker .date-filed-button {
+    position: absolute;
+    right: var(--pad);
+    top: var(--pad);
+    @apply flex items-center gap-2;
+}
+
+.date-picker .date-picker-input::placeholder {
+  opacity: 0;
+}
+
+.date-picker .date-picker-input:not(:placeholder-shown) + label {
+  transform: translateX(-.3rem) translateY(calc(-84% - var(--pad))) scale(.9);
+}
+.date-picker .date-filed-button .remove-icon {
+  @apply size-4 opacity-70 hover:opacity-100;
+}
+.date-picker .date-filed-button .calendar-icon {
+  @apply size-6 opacity-70;
+}
+
+.date-picker.error {
+  @apply mb-6
+}
+
+.date-picker.error .date-picker-input,
+.date-picker.error .date-picker-label,
+.date-picker.error > input:not(:placeholder-shown) + label {
+  color: var(--error);
+  border-color: var(--error);
+}
+.date-picker.error .date-filed-button .calendar-icon {
+  color: var(--error);
+}
+.date-picker.error .date-picker-error {
+  @apply text-sm font-medium text-red-500 absolute mt-1 pl-1;
+}
+
+/** ボタン */
+.button-base {
+  @apply relative text-white inline-flex items-center justify-center px-5 py-1.5 overflow-hidden text-sm font-medium transition-all duration-100 border rounded-md cursor-pointer hover:opacity-90 active:opacity-100;
+}
+
+.button-base.primary {
+  border-color: 1px solid var(--primary);
+  background-color: var(--primary);
+}
+
+.button-base.alert {
+  border-color: var(--error);
+  background-color: var(--error);
+}
+
+.button-base.alert:hover {
+  background-color: var(--error-hover);
+  border-color: var(--error-hover);
+}
+
+.button-base.alert:active {
+  background-color: var(--error-active);
+  border-color: var(--error-active);
+}
+/* Success Button */
+.button-base.success {
+  border-color: var(--success);
+  background-color: var(--success);
+  color: white;
+}
+
+.button-base.success:hover {
+  background-color: var(--success-hover);
+  border-color: var(--success-hover);
+}
+
+.button-base.success:active {
+  background-color: var(--success-active);
+  border-color: var(--success-active);
+}
+
+/* Warning Button */
+.button-base.warning {
+  border-color: var(--warning);
+  background-color: var(--warning);
+  color: var(--gray-900);
+}
+
+.button-base.warning:hover {
+  background-color: var(--warning-hover);
+  border-color: var(--warning-hover);
+}
+
+.button-base.warning:active {
+  background-color: var(--warning-active);
+  border-color: var(--warning-active);
+}
+
+/* Info Button */
+.button-base.info {
+  border-color: var(--info);
+  background-color: var(--info);
+  color: white;
+}
+
+.button-base.info:hover {
+  background-color: var(--info-hover);
+  border-color: var(--info-hover);
+}
+
+.button-base.info:active {
+  background-color: var(--info-active);
+  border-color: var(--info-active);
+}
+
+/* Pear Theme Button */
+.button-base.pear {
+  border-color: var(--pear-skin);
+  background-color: var(--pear-fruit);
+  color: var(--gray-900);
+}
+
+.button-base.pear:hover {
+  background-color: var(--pear-skin);
+  border-color: var(--pear-leaf);
+}
+
+.button-base.pear:active {
+  background-color: var(--pear-leaf);
+  border-color: var(--pear-leaf);
+  color: white;
+}
+
+/* Outline Button Variants */
+.button-base.outline {
+  background-color: transparent;
+  border-width: 1px;
+}
+
+.button-base.outline.primary {
+  color: var(--primary);
+}
+
+.button-base.outline:hover {
+  opacity: 0.7;
+}
+
+.button-base.outline.error {
+  color: var(--error);
+}
+
+.button-base.outline.success {
+  color: var(--success);
+}
+
+/* Ghost Button */
+.button-base.disabled {
+  background-color: var(--gray-400);
+  border-color: var(--gray-400);
+}
+
+/* Disabled State */
+.button-base:disabled,
+.button-base.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Select Clear Button */
+.select-clear-btn {
+  @apply flex items-center justify-center p-0 w-5 h-5 rounded hover:bg-gray-200 transition-colors;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.select-clear-icon {
+  @apply w-4 h-4 text-gray-500;
+}
+
+/* Time Select */
+.time-select-field {
+  @apply space-y-2 w-full;
+}
+
+.time-select-label {
+  @apply block text-sm font-medium mb-2;
+}
+
+.time-select-container {
+  @apply flex items-center gap-1;
+}
+
+.time-select-separator {
+  @apply text-xl font-medium px-1;
+}
+
+.time-select-field.error .error-message {
+  @apply text-sm font-medium text-red-500 mt-1;
+}

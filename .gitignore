@@ -1,0 +1,78 @@
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Docker volumes and data
+/docker/mysql/data/
+
+# IDE and Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+cookies.txt
+
+# Laravel specific (in laravel/)
+laravel/vendor/
+laravel/node_modules/
+laravel/public/hot
+laravel/public/storage
+laravel/storage/*.key
+laravel/.env
+laravel/.env.backup
+laravel/.env.production
+laravel/Homestead.json
+laravel/Homestead.yaml
+laravel/auth.json
+laravel/.phpunit.result.cache
+laravel/.phpunit.cache/
+laravel/bootstrap/cache/*
+!laravel/bootstrap/cache/.gitkeep
+laravel/storage/framework/cache/*
+!laravel/storage/framework/cache/.gitkeep
+laravel/storage/framework/sessions/*
+!laravel/storage/framework/sessions/.gitkeep
+laravel/storage/framework/views/*
+!laravel/storage/framework/views/.gitkeep
+laravel/storage/logs/*
+!laravel/storage/logs/.gitkeep
+
+# Next.js specific (in next/)
+next/node_modules/
+next/.next/
+next/out/
+next/build/
+next/dist/
+next/.yarn/*
+!next/.yarn/patches
+!next/.yarn/plugins
+!next/.yarn/releases
+!next/.yarn/versions
+next/.pnp.*
+next/coverage/
+next/.vercel
+next/*.tsbuildinfo
+next/next-env.d.ts
+next/.env
+next/.yarnrc.yml
+
+
+# Serena (MCP server)
+.serena/
+
+# Git
+.git/

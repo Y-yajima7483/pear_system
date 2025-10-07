@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  nginx:
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile
+    container_name: pear_nginx
+    ports:
+      - "${NGINX_PORT:-8080}:80"
+    volumes:
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./laravel:/var/www/app:ro
+    depends_on:
+      - next
+      - php
+    networks:
+      - pear_network
+    restart: unless-stopped
+
+  next:
+    build:
+      context: .
+      dockerfile: ./docker/node/Dockerfile
+    container_name: pear_next
+    volumes:
+      - ./next:/app
+      # - /app/node_modules
+      # - /app/.next
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - NEXT_PUBLIC_BACKEND_URL=http://127.0.0.1
+    ports:
+      - "3000:3000"
+    networks:
+      - pear_network
+    restart: unless-stopped
+    tty: true
+
+  php:
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
+    container_name: pear_php
+    volumes:
+      - ./laravel:/var/www/app
+    working_dir: /var/www/app
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - APP_DEBUG=${APP_DEBUG:-true}
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-pear_db}
+      - DB_USERNAME=${DB_USERNAME:-pear_user}
+      - DB_PASSWORD=${DB_PASSWORD:-pear_pass}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - pear_network
+    restart: unless-stopped
+
+  mysql:
+    build:
+      context: ./docker/mysql
+      dockerfile: Dockerfile
+    container_name: pear_mysql
+    environment:
+      - MYSQL_DATABASE=${DB_DATABASE:-pear_db}
+      - MYSQL_USER=${DB_USERNAME:-pear_user}
+      - MYSQL_PASSWORD=${DB_PASSWORD:-pear_pass}
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-root_pass}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    networks:
+      - pear_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-root_pass}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+  pear_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
