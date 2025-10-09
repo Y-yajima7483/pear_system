@@ -10,6 +10,7 @@ import { overlayStore } from '@/stores/useOverlayStore';
 import type { GetOrderListApiResponse, GetOrderListApiResponseContent } from '@/types/order';
 import { commonApiHookOptions } from '@/lib/api/commonErrorHandlers';
 import OrderItemCard from './OrderItemCard';
+import OrderDetailDialog from './OrderDetailDialog';
 import DroppableArea from './DroppableArea';
 import {
   DndContext,
@@ -71,6 +72,9 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0 }: OrderItem
   const [orderData, setOrderData] = useState<{[key: string]:Array<GetOrderListApiResponseContent>}>({});
   const [unreservedData, setUnreservedData] = useState<Array<GetOrderListApiResponseContent<null>>>([]);
   const [activeId, setActiveId] = useState<number | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<GetOrderListApiResponseContent | GetOrderListApiResponseContent<null> | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [hasInitialScroll, setHasInitialScroll] = useState(false);
   const calendarScrollRef = useRef<HTMLDivElement>(null);
   
   const sensors = useSensors(
@@ -117,10 +121,10 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0 }: OrderItem
   useEffect(()=> {
     fetchOrderData();
   },[refreshKey])
-  
-  // 初期表示時に現在の日付までスクロール
+
+  // 初期表示時に現在の日付までスクロール（一度だけ実行）
   useEffect(() => {
-    if (calendarScrollRef.current) {
+    if (calendarScrollRef.current && !hasInitialScroll) {
       // 現在日付のインデックスを取得
       const todayIndex = days.findIndex(day => isToday(day));
       if (todayIndex >= 0) {
@@ -128,9 +132,10 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0 }: OrderItem
         // 現在日付を中央付近に表示するため、少し調整
         const scrollPosition = Math.max(0, (todayIndex-1) * 350);
         calendarScrollRef.current.scrollLeft = scrollPosition;
+        setHasInitialScroll(true);
       }
     }
-  }, [days]);
+  }, [days, hasInitialScroll]);
   
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -264,20 +269,25 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0 }: OrderItem
   
   const getActiveItem = () => {
     if (!activeId) return null;
-    
+
     const unreservedItem = unreservedData.find(item => item.id === activeId);
     if (unreservedItem) return unreservedItem;
-    
+
     if (orderData) {
       for (const items of Object.values(orderData)) {
         const item = items.find(i => i.id === activeId);
         if (item) return item;
       }
     }
-    
+
     return null;
   };
-  
+
+  const handleOrderDetailClick = (order: GetOrderListApiResponseContent | GetOrderListApiResponseContent<null>) => {
+    setSelectedOrder(order);
+    setIsDetailDialogOpen(true);
+  };
+
   return (
     <DndContext 
       sensors={sensors}
@@ -299,7 +309,11 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0 }: OrderItem
             >
               <div className="space-y-8 px-1 py-4">
                 {unreservedData.map((data)=> (
-                  <OrderItemCard key={data.id} data={data} />
+                  <OrderItemCard
+                    key={data.id}
+                    data={data}
+                    onDetailClick={() => handleOrderDetailClick(data)}
+                  />
                 ))}
               </div>
             </SortableContext>
@@ -335,7 +349,11 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0 }: OrderItem
                         >
                           <div className="px-1 py-4 space-y-4 min-h-[200px]">
                             {dateItems.map((data)=> (
-                              <OrderItemCard key={data.id} data={data} />
+                              <OrderItemCard
+                                key={data.id}
+                                data={data}
+                                onDetailClick={() => handleOrderDetailClick(data)}
+                              />
                             ))}
                           </div>
                         </SortableContext>
@@ -353,6 +371,11 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0 }: OrderItem
           <OrderItemCard data={getActiveItem()!} />
         ) : null}
       </DragOverlay>
+      <OrderDetailDialog
+        order={selectedOrder}
+        open={isDetailDialogOpen}
+        onOpenChange={setIsDetailDialogOpen}
+      />
     </DndContext>
   )
 }

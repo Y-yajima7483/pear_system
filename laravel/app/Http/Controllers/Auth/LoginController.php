@@ -41,7 +41,11 @@ class LoginController extends Controller
                 'message' => 'ログイン情報が間違っています。',
             ], Response::HTTP_UNAUTHORIZED);
         } catch (Exception $e) {
-            $statusCode = $e->getCode();
+            // Exception::getCode() can return non-integer values, so we need to ensure it's a valid HTTP status code
+            $statusCode = is_int($e->getCode()) && $e->getCode() >= 100 && $e->getCode() < 600 
+                ? $e->getCode() 
+                : Response::HTTP_INTERNAL_SERVER_ERROR;
+            
             $message = $e->getMessage();
 
             return response()->json([
