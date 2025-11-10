@@ -72,6 +72,8 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [hasInitialScroll, setHasInitialScroll] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const prevBaseDateRef = useRef<Date>(baseDate);
   const calendarScrollRef = useRef<HTMLDivElement>(null);
   
   const sensors = useSensors(
@@ -90,7 +92,10 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
   
   const fetchOrderData = async () => {
     try {
-      openOverlay();
+      // 初回ロード以外は既存のオーバーレイを使用
+      if (!isInitialLoading) {
+        openOverlay();
+      }
       const res = await getOrderList('/order', {
         params: {
           target_date: format(baseDate, 'yyyy-MM-dd')
@@ -110,15 +115,28 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
         setOrderData(dateBasedData as {[key: string]: Array<GetOrderListApiResponseContent>});
       }
     } finally {
-      closeOverlay();
+      if (!isInitialLoading) {
+        closeOverlay();
+      }
+      setIsInitialLoading(false);
     }
   };
   
   useEffect(()=> {
+    // baseDateが変更された場合のみローディング状態をリセット
+    const baseDateChanged = prevBaseDateRef.current.getTime() !== baseDate.getTime();
+    if (baseDateChanged) {
+      setIsInitialLoading(true);
+      prevBaseDateRef.current = baseDate;
+    }
+
     fetchOrderData();
+
     // baseDateが変更されたらスクロール初期化フラグをリセット
-    setHasInitialScroll(false);
-  },[refreshKey, baseDate])
+    if (baseDateChanged) {
+      setHasInitialScroll(false);
+    }
+  },[refreshKey, baseDate]);
 
   // 初期表示時に現在の日付までスクロール（一度だけ実行）
   useEffect(() => {
@@ -325,8 +343,17 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
     };
   };
 
+  // 初期ロード中はローディング画面を表示
+  if (isInitialLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
+        <p className="text-lg font-medium text-gray-600">注文データを読み込んでいます...</p>
+      </div>
+    );
+  }
+
   return (
-    <DndContext 
+    <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
