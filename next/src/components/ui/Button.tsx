@@ -2,7 +2,7 @@ interface Props {
 	onClick?: React.MouseEventHandler<HTMLButtonElement>;
 	children: React.ReactNode;
 	type: "button" | "submit";
-	color?: "primary" | "alert" | "success" | "warning" | "info" | "pear";
+	color?: "primary" | "alert" | "success" | "warning" | "info" | "pear" | "border";
 	outline?: boolean;
 	disabled? : boolean;
 	className?: string;

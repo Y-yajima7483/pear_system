@@ -18,10 +18,10 @@ class OrderRepository implements OrderRepositoryInterface
     {
         $query = Order::query();
 
-        // target_dateの前後2週間の期間で検索 または pickup_dateがnullのデータを取得
+        // target_dateから1週間の期間で検索 または pickup_dateがnullのデータを取得
         $date = Carbon::parse($targetDate);
-        $startDate = $date->copy()->subWeeks(2);
-        $endDate = $date->copy()->addWeeks(2);
+        $startDate = $date->copy();
+        $endDate = $date->copy()->addWeeks(1);
 
         $query->where(function ($q) use ($startDate, $endDate) {
             $q->whereBetween('pickup_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
@@ -44,10 +44,14 @@ class OrderRepository implements OrderRepositoryInterface
                 'id' => $order->id,
                 'customer_name' => $order->customer_name,
                 'pickup_date' => $order->pickup_date ? $order->pickup_date : null,
+                'pickup_time' => $order->pickup_time,
+                'notes' => $order->notes,
                 'status' => $order->status,
                 'items' => $order->orderItems->map(function ($item) {
                     return [
+                        'variety_id' => $item->product->variety->id ?? null,
                         'variety' => $item->product->variety->name ?? '',
+                        'product_id' => $item->product->id ?? null,
                         'item' => $item->product->name ?? '',
                         'quantity' => $item->quantity,
                     ];

@@ -32,6 +32,7 @@ export default function SelectBox<ESFieldValues extends FieldValues>({
 						errorMessage={errorMessage}
 						onChange={field.onChange}
 						trigger={trigger}
+						value={field.value}
 					/>
 				);
 			}}

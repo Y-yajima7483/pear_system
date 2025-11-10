@@ -701,6 +701,21 @@ input[type="time"]::-webkit-clear-button {
   color: white;
 }
 
+/* Border Button */
+.button-base.border {
+  background-color: transparent;
+  border: 1px solid var(--gray-900);
+  color: var(--gray-900);
+}
+
+.button-base.border:hover {
+  opacity: 0.7;
+}
+
+.button-base.border:active {
+  opacity: 1;
+}
+
 /* Outline Button Variants */
 .button-base.outline {
   background-color: transparent;

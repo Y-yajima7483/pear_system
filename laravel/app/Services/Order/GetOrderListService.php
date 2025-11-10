@@ -24,6 +24,6 @@ class GetOrderListService extends AbstractService
 
         $result = $this->orderRepository->getOrderList($targetDate, $customerName);
 
-        return $this->response->execute($result);
+        return $this->response->execute($result, $targetDate);
     }
 }

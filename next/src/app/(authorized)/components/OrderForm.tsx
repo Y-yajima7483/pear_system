@@ -84,24 +84,30 @@ export default function OrderForm({
           const products = getProductsByVariety(variety.variety_id)
           const currentProducts = variety.product || {}
 
-          // 新しく選択された品種の商品に初期値を設定
-          const updatedProducts = products.reduce((acc, product) => {
-            const productKey = product.value.toString()
-            // 既存の値があれば保持、なければ'0'を設定
-            acc[productKey] = currentProducts[productKey] !== undefined ? currentProducts[productKey] : '0'
-            return acc
-          }, {} as Record<string, string>)
+          // 品種に紐づく商品がある場合のみ処理
+          if (products.length > 0) {
+            const productIds = products.map(p => p.value.toString())
 
-          // 選択されていない商品のデータは削除
-          const productIds = products.map(p => p.value.toString())
-          Object.keys(currentProducts).forEach(key => {
-            if (!productIds.includes(key)) {
-              delete updatedProducts[key]
+            // 新しく追加された商品のみに初期値'0'を設定
+            const updatedProducts = { ...currentProducts }
+            products.forEach((product) => {
+              const productKey = product.value.toString()
+              // 既存の値がない場合のみ'0'を設定
+              if (updatedProducts[productKey] === undefined) {
+                updatedProducts[productKey] = '0'
+              }
+            })
+
+            // 選択されていない商品のデータは削除
+            Object.keys(updatedProducts).forEach(key => {
+              if (!productIds.includes(key)) {
+                delete updatedProducts[key]
+              }
+            })
+
+            if (JSON.stringify(currentProducts) !== JSON.stringify(updatedProducts)) {
+              setValue(`items.${index}.product`, updatedProducts)
             }
-          })
-
-          if (JSON.stringify(currentProducts) !== JSON.stringify(updatedProducts)) {
-            setValue(`items.${index}.product`, updatedProducts)
           }
         } else {
           // 品種が選択されていない場合は空のオブジェクトを設定

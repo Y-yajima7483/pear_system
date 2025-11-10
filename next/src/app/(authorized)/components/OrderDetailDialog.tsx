@@ -19,6 +19,7 @@ interface OrderDetailDialogProps {
   order: GetOrderListApiResponseContent | GetOrderListApiResponseContent<null> | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onEditClick?: () => void;
 }
 
 const statusLabels = {
@@ -27,7 +28,7 @@ const statusLabels = {
   canceled: 'キャンセル',
 };
 
-export default function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDialogProps) {
+export default function OrderDetailDialog({ order, open, onOpenChange, onEditClick }: OrderDetailDialogProps) {
   if (!order) return null;
 
   const pickupDateFormatted = order.pickup_date
@@ -116,6 +117,11 @@ export default function OrderDetailDialog({ order, open, onOpenChange }: OrderDe
           <DialogClose asChild>
             <Button type="button" outline className='w-full'>閉じる</Button>
           </DialogClose>
+          {onEditClick && (
+            <Button type="button" onClick={onEditClick} className='w-full'>
+              編集
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

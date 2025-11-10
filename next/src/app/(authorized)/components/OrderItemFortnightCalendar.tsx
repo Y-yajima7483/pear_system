@@ -2,16 +2,17 @@
 
 import React, { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation';
-import { addDays, startOfWeek, format, subWeeks, isToday } from 'date-fns';
+import { format } from 'date-fns';
 import useGetApi from '@/lib/api/useGetApi'
 import usePutApi from '@/lib/api/usePutApi';
-import { ja } from 'date-fns/locale';
 import { overlayStore } from '@/stores/useOverlayStore';
 import type { GetOrderListApiResponse, GetOrderListApiResponseContent } from '@/types/order';
 import { commonApiHookOptions } from '@/lib/api/commonErrorHandlers';
 import OrderItemCard from './OrderItemCard';
 import OrderDetailDialog from './OrderDetailDialog';
+import OrderUpdateDialog from './OrderUpdateDialog';
 import DroppableArea from './DroppableArea';
+import type { OrderDetailData } from '@/types/order';
 import {
   DndContext,
   closestCenter,
@@ -54,26 +55,22 @@ function formatDayLabel(date: Date, locale: string = 'ja-JP') {
 
 interface OrderItemFortnightCalendarProps {
   refreshKey?: number;
+  baseDate?: Date;
 }
 
-export default function OrderItemFortnightCalendar({ refreshKey = 0 }: OrderItemFortnightCalendarProps) {
-  const router = useRouter();
+export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = new Date() }: OrderItemFortnightCalendarProps) {
   const { openOverlay, closeOverlay } = overlayStore();
   const {update, loading} = usePutApi(commonApiHookOptions);
   const { get: getOrderList } = useGetApi<GetOrderListApiResponse>(commonApiHookOptions);
-  const baseDate = new Date()
-  const weekStartsOn: TwoWeekCalendarProps['weekStartsOn'] = 1
-  // 現在の日付の2週間前から開始
-  const startDate = subWeeks(baseDate, 2)
-  const weekStart = startOfWeek(startDate, { weekStartsOn, locale: ja })
-  // 4週間分（28日）の日付配列を生成
-  const days = Array.from({ length: 28 }, (_, i) => addDays(weekStart, i))
-  const minInnerWidth = 10 + 28 * 350;
+  // バックエンドから受け取った日付キー配列（unreserved_dataを除く）
+  const [dateKeys, setDateKeys] = useState<string[]>([]);
+  const minInnerWidth = 10 + 7 * 350;
   const [orderData, setOrderData] = useState<{[key: string]:Array<GetOrderListApiResponseContent>}>({});
   const [unreservedData, setUnreservedData] = useState<Array<GetOrderListApiResponseContent<null>>>([]);
   const [activeId, setActiveId] = useState<number | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<GetOrderListApiResponseContent | GetOrderListApiResponseContent<null> | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [hasInitialScroll, setHasInitialScroll] = useState(false);
   const calendarScrollRef = useRef<HTMLDivElement>(null);
   
@@ -100,18 +97,17 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0 }: OrderItem
         }
       });
       if(res.success) {
-        setUnreservedData(res.data.unreserved_data);
-        // pickup_dateで注文データをグルーピング
-        const groupedData = res.data.reserved_data.reduce((acc: {[key: string]: Array<GetOrderListApiResponseContent>}, order) => {
-          const dateKey = order.pickup_date;
-          if (!acc[dateKey]) {
-            acc[dateKey] = [];
-          }
-          acc[dateKey].push(order);
-          return acc;
-        }, {});
-        
-        setOrderData(groupedData);
+        const { unreserved_data, ...dateBasedData } = res.data;
+
+        // unreserved_dataを設定
+        setUnreservedData(unreserved_data);
+
+        // 日付キーのみを抽出してソート（unreserved_dataを除く）
+        const dates = Object.keys(dateBasedData).sort();
+        setDateKeys(dates);
+
+        // 注文データを設定
+        setOrderData(dateBasedData as {[key: string]: Array<GetOrderListApiResponseContent>});
       }
     } finally {
       closeOverlay();
@@ -120,22 +116,18 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0 }: OrderItem
   
   useEffect(()=> {
     fetchOrderData();
-  },[refreshKey])
+    // baseDateが変更されたらスクロール初期化フラグをリセット
+    setHasInitialScroll(false);
+  },[refreshKey, baseDate])
 
   // 初期表示時に現在の日付までスクロール（一度だけ実行）
   useEffect(() => {
-    if (calendarScrollRef.current && !hasInitialScroll) {
-      // 現在日付のインデックスを取得
-      const todayIndex = days.findIndex(day => isToday(day));
-      if (todayIndex >= 0) {
-        // 各列の幅（350px）と余白を考慮してスクロール位置を計算
-        // 現在日付を中央付近に表示するため、少し調整
-        const scrollPosition = Math.max(0, (todayIndex-1) * 350);
-        calendarScrollRef.current.scrollLeft = scrollPosition;
-        setHasInitialScroll(true);
-      }
+    if (calendarScrollRef.current && !hasInitialScroll && dateKeys.length > 0) {
+      // 先頭にスクロール（1週間表示なので常に先頭から表示）
+      calendarScrollRef.current.scrollLeft = 0;
+      setHasInitialScroll(true);
     }
-  }, [days, hasInitialScroll]);
+  }, [dateKeys, hasInitialScroll]);
   
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -288,6 +280,51 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0 }: OrderItem
     setIsDetailDialogOpen(true);
   };
 
+  const handleEditClick = () => {
+    setIsDetailDialogOpen(false);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleOrderUpdated = () => {
+    fetchOrderData();
+  };
+
+  // GetOrderListApiResponseContent を OrderDetailData に変換
+  const convertToOrderDetailData = (order: GetOrderListApiResponseContent | GetOrderListApiResponseContent<null>): OrderDetailData | null => {
+    if (!order) return null;
+
+    // items を variety_id でグループ化
+    const itemsByVariety: { [key: number]: { variety_id: number; variety_name: string; products: Array<{ product_id: number; product_name: string; quantity: number }> } } = {};
+
+    order.items.forEach((item) => {
+      const varietyKey = item.variety_id;
+
+      if (!itemsByVariety[varietyKey]) {
+        itemsByVariety[varietyKey] = {
+          variety_id: item.variety_id,
+          variety_name: item.variety,
+          products: [],
+        };
+      }
+
+      itemsByVariety[varietyKey].products.push({
+        product_id: item.product_id,
+        product_name: item.item,
+        quantity: item.quantity,
+      });
+    });
+
+    return {
+      id: order.id,
+      customer_name: order.customer_name,
+      notes: order.notes || '',
+      pickup_date: order.pickup_date || null,
+      pickup_time: order.pickup_time || null,
+      status: order.status,
+      items: Object.values(itemsByVariety),
+    };
+  };
+
   return (
     <DndContext 
       sensors={sensors}
@@ -322,12 +359,13 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0 }: OrderItem
         <div className="w-[73%] pt-2">
           <div ref={calendarScrollRef} className="w-full h-[85vh] overflow-x-auto overflow-y-auto border border-gray-900">
             <div className="h-full" style={{ minWidth: `${minInnerWidth}px` }}>
-              <div className="h-full grid [grid-template-columns:10px_repeat(28,minmax(250px,1fr))]">
+              <div className="h-full grid [grid-template-columns:10px_repeat(7,minmax(250px,1fr))]">
                 <div className="h-12 sticky top-0 z-10" />
-                {days.map((d, idx) => {
-                  const dateKey = format(d, 'yyyy-MM-dd');
+                {dateKeys.map((dateKey, idx) => {
                   const dateItems = orderData?.[dateKey] || [];
-                  const isCurrentDate = isToday(d);
+                  const isCurrentDate = dateKey === format(new Date(), 'yyyy-MM-dd');
+                  // yyyy-MM-dd形式の文字列から日付オブジェクトを作成してラベル表示
+                  const dateObj = new Date(dateKey);
                   return (
                     <div key={`hdr-${idx}`} className="flex flex-wrap h-full">
                       <div
@@ -335,15 +373,15 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0 }: OrderItem
                           isCurrentDate ? 'bg-blue-50 text-blue-900 font-bold' : 'bg-white'
                         }`}
                       >
-                        {formatDayLabel(d)}
+                        {formatDayLabel(dateObj)}
                       </div>
-                      <DroppableArea 
-                        id={`date-${dateKey}`} 
+                      <DroppableArea
+                        id={`date-${dateKey}`}
                         className={`w-full h-full border-l border-gray-900 bg-blue-50/20 ${
                           isCurrentDate ? 'bg-blue-50/20' : ''
                         }`}
                       >
-                        <SortableContext 
+                        <SortableContext
                           items={dateItems.map(item => item.id)}
                           strategy={verticalListSortingStrategy}
                         >
@@ -375,7 +413,16 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0 }: OrderItem
         order={selectedOrder}
         open={isDetailDialogOpen}
         onOpenChange={setIsDetailDialogOpen}
+        onEditClick={handleEditClick}
       />
+      {selectedOrder && convertToOrderDetailData(selectedOrder) && (
+        <OrderUpdateDialog
+          orderData={convertToOrderDetailData(selectedOrder)!}
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          onOrderUpdated={handleOrderUpdated}
+        />
+      )}
     </DndContext>
   )
 }
