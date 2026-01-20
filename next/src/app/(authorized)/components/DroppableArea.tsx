@@ -13,9 +13,9 @@ export default function DroppableArea({ id, children, className = '' }: Droppabl
   });
 
   return (
-    <div 
-      ref={setNodeRef} 
-      className={`${className} ${isOver ? 'bg-gray-100' : ''}`}
+    <div
+      ref={setNodeRef}
+      className={`${className} ${isOver ? 'bg-gray-100' : ''} h-full`}
     >
       {children}
     </div>

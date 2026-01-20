@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/sonner";
 import Overlay from "@/components/ui/overlay";
-import PageHeader from "@/components/ui/page-header";
 import { defaultMetadata } from "@/types/metadata";
 import "./globals.css";
 
@@ -36,7 +35,6 @@ export default function RootLayout({
       <body
         className='antialiased'
       >
-        <PageHeader title={defaultMetadata.title} />
         <main className="min-h-screen">{children}</main>
         <Toaster position="top-center" richColors closeButton />
         <Overlay />

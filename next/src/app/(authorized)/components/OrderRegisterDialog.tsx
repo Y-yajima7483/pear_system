@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react'
+import { Plus } from 'lucide-react';
 import { useForm, useFieldArray } from 'react-hook-form'
 import { format } from 'date-fns';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -88,7 +89,10 @@ export default function OrderRegisterDialog({ onOrderCreated }: OrderRegisterDia
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button type="button" color="primary" onClick={()=> reset()}>新しい注文を登録する</Button>
+        <Button type="button" onClick={() => reset()} className="text-sm py-2 px-2">
+          <Plus />
+          注文登録
+        </Button>
       </DialogTrigger>
       <DialogContent
         className="max-h-[70vh] overflow-y-scroll p-0 max-w-xl"

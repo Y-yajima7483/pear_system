@@ -8,39 +8,41 @@
   /* 基本背景・前景色 */
   --bg: #ffffff;
 
-  /* Primary Colors - 信頼性のある青系 */
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --primary-active: #1d4ed8;
-  --primary-light: #60a5fa;
-  --primary-lighter: #93c5fd;
-  --primary-dark: #1e40af;
+  /* Primary Colors - 梨をイメージした緑系（新デザイン） */
+  --primary: #8ba962;
+  --primary-hover: #9bb972;
+  --primary-active: #7a9855;
+  --primary-light: #a8c47a;
+  --primary-lighter: #c5d89a;
+  --primary-dark: #5a6b3c;
+  --primary-gradient: linear-gradient(135deg, #8ba962 0%, #7f9d58 100%);
+  --primary-gradient-hover: linear-gradient(135deg, #95b56c 0%, #8ba962 100%);
 
   /* Error Colors - 注意を引く赤系 */
-  --error: #ef4444;
+  --error: #c27171;
   --error-hover: #dc2626;
   --error-active: #b91c1c;
-  --error-light: #f87171;
+  --error-light: #c27171;
   --error-lighter: #fca5a5;
-  --error-dark: #991b1b;
+  --error-dark: #925454;
   --error-bg: #fef2f2;
 
-  /* Success Colors - 梨の葉をイメージした緑系 */
-  --success: #22c55e;
-  --success-hover: #16a34a;
-  --success-active: #15803d;
-  --success-light: #4ade80;
-  --success-lighter: #86efac;
-  --success-dark: #166534;
-  --success-bg: #f0fdf4;
+  /* Success Colors - 確認済み表示用（新デザイン） */
+  --success: #8ba962;
+  --success-hover: #9bb972;
+  --success-active: #7a9855;
+  --success-light: #a8c47a;
+  --success-lighter: #c5d89a;
+  --success-dark: #5a6b3c;
+  --success-bg: #f8fbf4;
 
-  /* Warning Colors - 梨の実をイメージした黄系 */
-  --warning: #eab308;
-  --warning-hover: #ca8a04;
-  --warning-active: #a16207;
-  --warning-light: #facc15;
-  --warning-lighter: #fde047;
-  --warning-dark: #854d0e;
+  /* Warning Colors - 未確認表示用（新デザイン） */
+  --warning: #c8a050;
+  --warning-hover: #b89040;
+  --warning-active: #a08040;
+  --warning-light: #d8b060;
+  --warning-lighter: #e8c080;
+  --warning-dark: #806030;
   --warning-bg: #fefce8;
 
   /* Info Colors - 情報提供用の青系 */
@@ -52,11 +54,24 @@
   --info-dark: #155e75;
   --info-bg: #f0fdfa;
 
-  /* Pear Theme Colors - 梨特有の色 */
-  --pear-fruit: #d4d648;  /* 熟した梨の黄色 */
-  --pear-skin: #a8b545;   /* 梨の皮の黄緑色 */
-  --pear-leaf: #7cb342;   /* 梨の葉の緑色 */
-  --pear-branch: #6d4c41; /* 梨の枝の茶色 */
+  /* Pear Theme Colors - 梨テーマ専用色（新デザイン） */
+  --pear-primary: #8ba962;        /* メインの梨緑 */
+  --pear-primary-dark: #5a6b3c;   /* 濃い梨緑（テキスト用） */
+  --pear-primary-light: #c5d86d;  /* 明るい梨緑 */
+  --pear-accent: #c8a050;         /* アクセント（警告・未確認用） */
+  --pear-branch: #7a6b4e;         /* 枝の茶色 */
+  --pear-bg-gradient: linear-gradient(135deg, #fefefe 0%, #f8f6f0 50%, #f5f0e6 100%);
+  --pear-card-bg: #f8fbf4;
+  --pear-border: rgba(139, 169, 98, 0.15);
+  --pear-border-light: rgba(139, 169, 98, 0.08);
+  --pear-shadow: rgba(90, 107, 60, 0.12);
+  --pear-shadow-light: rgba(139, 169, 98, 0.06);
+
+  /* Text Colors - 新デザイン用 */
+  --text-primary: #3d4a2d;        /* メインテキスト */
+  --text-secondary: #5a5a5a;      /* サブテキスト */
+  --text-muted: #8a8a7a;          /* 薄いテキスト */
+  --text-accent: #5a6b3c;         /* アクセントテキスト */
 
   /* Gray Scale - 汎用グレースケール */
   --gray-50: #f9fafb;
@@ -71,16 +86,18 @@
   --gray-900: #111827;
 
   /* Border Colors */
-  --border-default: #323334;
-  --border-hover: #9ca3af;
+  --border-default: rgba(139, 169, 98, 0.25);
+  --border-hover: rgba(139, 169, 98, 0.4);
   --border-focus: var(--primary);
   /* オーバーレイ */
   --overlay: rgba(0, 0, 0, 0.6);
 
-  /* Shadow Colors */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  /* Shadow Colors - 新デザイン */
+  --shadow-sm: 0 1px 2px 0 rgba(90, 107, 60, 0.05);
+  --shadow: 0 1px 4px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(90, 107, 60, 0.12);
+  --shadow-lg: 0 4px 16px rgba(139, 169, 98, 0.35);
+  --shadow-hover: 0 6px 24px rgba(139, 169, 98, 0.45);
 
   /* Legacy compatibility */
   --accent: oklch(0.968 0.007 247.896);
@@ -203,40 +220,42 @@
     /* 基本背景・前景色 */
     --bg: #0a0a0a;
 
-    /* Primary Colors - ダークモード用 */
-    --primary: #60a5fa;
-    --primary-hover: #93c5fd;
-    --primary-active: #bfdbfe;
-    --primary-light: #93c5fd;
-    --primary-lighter: #dbeafe;
-    --primary-dark: #2563eb;
+    /* Primary Colors - ダークモード用（梨緑） */
+    --primary: #a8c47a;
+    --primary-hover: #b8d48a;
+    --primary-active: #c8e49a;
+    --primary-light: #c5d89a;
+    --primary-lighter: #d8e8b0;
+    --primary-dark: #8ba962;
+    --primary-gradient: linear-gradient(135deg, #a8c47a 0%, #9cb870 100%);
+    --primary-gradient-hover: linear-gradient(135deg, #b2ce84 0%, #a8c47a 100%);
 
     /* Error Colors - ダークモード用 */
-    --error: #f87171;
+    --error: #c27171;
     --error-hover: #fca5a5;
     --error-active: #fecaca;
-    --error-light: fca5a5;
+    --error-light: #c27171;
     --error-lighter: #fee2e2;
-    --error-dark: #ef4444;
+    --error-dark: #925454;
     --error-bg: #450a0a;
 
     /* Success Colors - ダークモード用 */
-    --success: #4ade80;
-    --success-hover: #86efac;
-    --success-active: #bbf7d0;
-    --success-light: #86efac;
-    --success-lighter: #d1fae5;
-    --success-dark: #22c55e;
-    --success-bg: #052e16;
+    --success: #a8c47a;
+    --success-hover: #b8d48a;
+    --success-active: #c8e49a;
+    --success-light: #c5d89a;
+    --success-lighter: #d8e8b0;
+    --success-dark: #8ba962;
+    --success-bg: #1a2a14;
 
     /* Warning Colors - ダークモード用 */
-    --warning: #facc15;
-    --warning-hover: #fde047;
-    --warning-active: #fef08a;
-    --warning-light: #fde047;
-    --warning-lighter: #fef3c7;
-    --warning-dark: #eab308;
-    --warning-bg: #451a03;
+    --warning: #d8b060;
+    --warning-hover: #e8c080;
+    --warning-active: #f0d090;
+    --warning-light: #e8c080;
+    --warning-lighter: #f0d0a0;
+    --warning-dark: #c8a050;
+    --warning-bg: #2a1a0a;
 
     /* Info Colors - ダークモード用 */
     --info: #22d3ee;
@@ -248,10 +267,23 @@
     --info-bg: #083344;
 
     /* Pear Theme Colors - ダークモード用 */
-    --pear-fruit: #e5e866;
-    --pear-skin: #b8c655;
-    --pear-leaf: #8bc34a;
-    --pear-branch: #8d6e63;
+    --pear-primary: #a8c47a;
+    --pear-primary-dark: #8ba962;
+    --pear-primary-light: #c5d89a;
+    --pear-accent: #d8b060;
+    --pear-branch: #a89070;
+    --pear-bg-gradient: linear-gradient(135deg, #1a1a18 0%, #1e1e1a 50%, #222218 100%);
+    --pear-card-bg: #1a2a14;
+    --pear-border: rgba(168, 196, 122, 0.2);
+    --pear-border-light: rgba(168, 196, 122, 0.1);
+    --pear-shadow: rgba(168, 196, 122, 0.15);
+    --pear-shadow-light: rgba(168, 196, 122, 0.08);
+
+    /* Text Colors - ダークモード用 */
+    --text-primary: #e8f0d8;
+    --text-secondary: #b0b0a0;
+    --text-muted: #808070;
+    --text-accent: #a8c47a;
 
     /* Gray Scale - ダークモード用 */
     --gray-50: #111827;
@@ -266,9 +298,16 @@
     --gray-900: #f9fafb;
 
     /* Border Colors - ダークモード用 */
-    --border-default: #374151;
-    --border-hover: #4b5563;
+    --border-default: rgba(168, 196, 122, 0.25);
+    --border-hover: rgba(168, 196, 122, 0.4);
     --border-focus: var(--primary);
+
+    /* Shadow Colors - ダークモード用 */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+    --shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 4px 16px rgba(168, 196, 122, 0.2);
+    --shadow-hover: 0 6px 24px rgba(168, 196, 122, 0.3);
 
     /* Legacy compatibility */
     --accent: var(--primary);
@@ -361,7 +400,8 @@ input[type="time"]::-webkit-clear-button {
 }
 
 .text-field.error > p {
-  @apply text-sm font-medium text-red-500 absolute mt-1 pl-1;
+  color: var(--error);
+  @apply text-sm font-medium absolute mt-1 pl-1;
 }
 
 /* TextArea Field */
@@ -412,18 +452,6 @@ input[type="time"]::-webkit-clear-button {
   border-color: var(--primary);
 }
 
-.text-area__suffix {
-  position: absolute;
-  right: var(--pad);
-  bottom: var(--pad);
-  z-index: 1;
-  pointer-events: none;
-  @apply text-sm;
-}
-
-.text-area.error .text-area__suffix {
-  color: var(--error);
-}
 
 .text-area.error > textarea,
 .text-area.error > label,
@@ -434,7 +462,8 @@ input[type="time"]::-webkit-clear-button {
 }
 
 .text-area.error > p {
-  @apply text-sm font-medium text-red-500 absolute mt-1 pl-1;
+  color: var(--error);
+  @apply text-sm font-medium absolute mt-1 pl-1;
 }
 
 /* Select Field */
@@ -537,7 +566,8 @@ input[type="time"]::-webkit-clear-button {
 }
 
 .select-field.error > p {
-  @apply text-sm font-medium text-red-500 absolute mt-1 pl-1;
+  color: var(--error);
+  @apply text-sm font-medium absolute mt-1 pl-1;
 }
 
 /* DatePciker */
@@ -605,151 +635,194 @@ input[type="time"]::-webkit-clear-button {
   color: var(--error);
 }
 .date-picker.error .date-picker-error {
-  @apply text-sm font-medium text-red-500 absolute mt-1 pl-1;
+  color: var(--error);
+  @apply text-sm font-medium absolute mt-1 pl-1;
 }
 
 /** ボタン */
 .button-base {
-  @apply relative text-white inline-flex items-center justify-center px-5 py-1.5 overflow-hidden text-sm font-medium transition-all duration-100 border rounded-md cursor-pointer hover:opacity-90 active:opacity-100;
+  @apply relative text-white inline-flex items-center justify-center gap-2 px-6 py-2.5 overflow-hidden text-sm font-semibold transition-all duration-300 border-none rounded-[10px] cursor-pointer;
+  background: var(--primary-gradient);
+  box-shadow: 0 2px 4px rgba(90, 107, 60, 0.15), inset 0 1px 0 rgba(255,255,255,0.15);
+  letter-spacing: 0.03em;
+}
+
+.button-base:hover {
+  background: var(--primary-gradient-hover);
+  box-shadow: 0 3px 8px rgba(90, 107, 60, 0.2), inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
 .button-base.primary {
-  border-color: 1px solid var(--primary);
-  background-color: var(--primary);
+  background: var(--primary-gradient);
+  box-shadow: 0 2px 4px rgba(90, 107, 60, 0.15), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+.button-base.primary:hover {
+  background: var(--primary-gradient-hover);
+  box-shadow: 0 3px 8px rgba(90, 107, 60, 0.2), inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
 .button-base.alert {
-  border-color: var(--error);
-  background-color: var(--error);
+  background: linear-gradient(135deg, var(--error) 0%, var(--error-dark) 100%);
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2), inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
 .button-base.alert:hover {
-  background-color: var(--error-hover);
-  border-color: var(--error-hover);
+  background: linear-gradient(135deg, var(--error-light) 0%, var(--error) 100%);
+  box-shadow: 0 3px 8px rgba(239, 68, 68, 0.25), inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
 .button-base.alert:active {
-  background-color: var(--error-active);
-  border-color: var(--error-active);
+  background: linear-gradient(135deg, var(--error-dark) 0%, var(--error-active) 100%);
 }
+
 /* Success Button */
 .button-base.success {
-  border-color: var(--success);
-  background-color: var(--success);
+  background: var(--primary-gradient);
+  box-shadow: 0 2px 4px rgba(90, 107, 60, 0.15), inset 0 1px 0 rgba(255,255,255,0.15);
   color: white;
 }
 
 .button-base.success:hover {
-  background-color: var(--success-hover);
-  border-color: var(--success-hover);
+  background: var(--primary-gradient-hover);
+  box-shadow: 0 3px 8px rgba(90, 107, 60, 0.2), inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
 .button-base.success:active {
-  background-color: var(--success-active);
-  border-color: var(--success-active);
+  background: linear-gradient(135deg, var(--primary-active) 0%, var(--primary-dark) 100%);
 }
 
 /* Warning Button */
 .button-base.warning {
-  border-color: var(--warning);
-  background-color: var(--warning);
-  color: var(--gray-900);
+  background: linear-gradient(135deg, var(--warning) 0%, var(--warning-dark) 100%);
+  box-shadow: 0 2px 4px rgba(200, 160, 80, 0.2), inset 0 1px 0 rgba(255,255,255,0.15);
+  color: white;
 }
 
 .button-base.warning:hover {
-  background-color: var(--warning-hover);
-  border-color: var(--warning-hover);
+  background: linear-gradient(135deg, var(--warning-light) 0%, var(--warning) 100%);
+  box-shadow: 0 3px 8px rgba(200, 160, 80, 0.25), inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
 .button-base.warning:active {
-  background-color: var(--warning-active);
-  border-color: var(--warning-active);
+  background: linear-gradient(135deg, var(--warning-dark) 0%, var(--warning-active) 100%);
 }
 
 /* Info Button */
 .button-base.info {
-  border-color: var(--info);
-  background-color: var(--info);
+  background: linear-gradient(135deg, var(--info) 0%, var(--info-dark) 100%);
+  box-shadow: 0 2px 4px rgba(6, 182, 212, 0.2), inset 0 1px 0 rgba(255,255,255,0.15);
   color: white;
 }
 
 .button-base.info:hover {
-  background-color: var(--info-hover);
-  border-color: var(--info-hover);
+  background: linear-gradient(135deg, var(--info-light) 0%, var(--info) 100%);
+  box-shadow: 0 3px 8px rgba(6, 182, 212, 0.25), inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
 .button-base.info:active {
-  background-color: var(--info-active);
-  border-color: var(--info-active);
+  background: linear-gradient(135deg, var(--info-dark) 0%, var(--info-active) 100%);
 }
 
-/* Pear Theme Button */
+/* Pear Theme Button (Same as primary) */
 .button-base.pear {
-  border-color: var(--pear-skin);
-  background-color: var(--pear-fruit);
-  color: var(--gray-900);
+  background: var(--primary-gradient);
+  box-shadow: 0 2px 4px rgba(90, 107, 60, 0.15), inset 0 1px 0 rgba(255,255,255,0.15);
+  color: white;
 }
 
 .button-base.pear:hover {
-  background-color: var(--pear-skin);
-  border-color: var(--pear-leaf);
+  background: var(--primary-gradient-hover);
+  box-shadow: 0 3px 8px rgba(90, 107, 60, 0.2), inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
 .button-base.pear:active {
-  background-color: var(--pear-leaf);
-  border-color: var(--pear-leaf);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-active) 0%, var(--primary-dark) 100%);
 }
 
 /* Border Button */
 .button-base.border {
-  background-color: transparent;
-  border: 1px solid var(--gray-900);
-  color: var(--gray-900);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  box-shadow: none;
 }
 
 .button-base.border:hover {
-  opacity: 0.7;
+  background: rgba(139, 169, 98, 0.08);
+  border-color: var(--border-hover);
+  box-shadow: none;
+  transform: none;
 }
 
 .button-base.border:active {
-  opacity: 1;
+  background: rgba(139, 169, 98, 0.12);
 }
 
 /* Outline Button Variants */
 .button-base.outline {
-  background-color: transparent;
-  border-width: 1px;
-}
-
-.button-base.outline.primary {
+  background: transparent;
+  border: 1px solid var(--primary);
   color: var(--primary);
+  box-shadow: none;
 }
 
 .button-base.outline:hover {
-  opacity: 0.7;
+  background: rgba(139, 169, 98, 0.1);
+  box-shadow: none;
+  transform: none;
 }
 
-.button-base.outline.error {
+.button-base.outline.primary {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.button-base.outline.alert {
+  border-color: var(--error);
   color: var(--error);
+  background: transparent;
+}
+
+.button-base.outline.alert:hover {
+  background: var(--error-light);
+  color: white;
 }
 
 .button-base.outline.success {
+  border-color: var(--success);
   color: var(--success);
+  background: transparent;
+}
+
+.button-base.outline.success:hover {
+  background: rgba(139, 169, 98, 0.1);
 }
 
 /* Ghost Button */
-.button-base.disabled {
-  background-color: var(--gray-400);
-  border-color: var(--gray-400);
+.button-base.ghost {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  box-shadow: none;
+}
+
+.button-base.ghost:hover {
+  background: rgba(139, 169, 98, 0.08);
+  color: var(--text-primary);
+  box-shadow: none;
+  transform: none;
 }
 
 /* Disabled State */
 .button-base:disabled,
 .button-base.disabled {
+  background: var(--gray-400);
+  box-shadow: none;
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
+  transform: none;
 }
 
 /* Select Clear Button */
@@ -764,23 +837,572 @@ input[type="time"]::-webkit-clear-button {
   @apply w-4 h-4 text-gray-500;
 }
 
-/* Time Select */
-.time-select-field {
-  @apply space-y-2 w-full;
+
+/* ==========================================
+   PEAR SYSTEM ユーティリティクラス
+   ========================================== */
+
+/* 背景グラデーション */
+.pear-bg {
+  background: var(--pear-bg-gradient);
 }
 
-.time-select-label {
-  @apply block text-sm font-medium mb-2;
+.pear-bg-card {
+  background: var(--pear-card-bg);
 }
 
-.time-select-container {
-  @apply flex items-center gap-1;
+/* グラスモーフィズム効果 */
+.pear-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--pear-border);
 }
 
-.time-select-separator {
-  @apply text-xl font-medium px-1;
+
+/* カード */
+.pear-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px var(--pear-shadow-light);
+  border: 1px solid var(--pear-border-light);
 }
 
-.time-select-field.error .error-message {
-  @apply text-sm font-medium text-red-500 mt-1;
+
+/* テキストグラデーション */
+.pear-text-gradient {
+  background: linear-gradient(135deg, var(--pear-primary-dark) 0%, var(--pear-primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* テキストカラー */
+.pear-text-primary {
+  color: var(--text-primary);
+}
+
+.pear-text-secondary {
+  color: var(--text-secondary);
+}
+
+.pear-text-muted {
+  color: var(--text-muted);
+}
+
+.pear-text-accent {
+  color: var(--text-accent);
+}
+
+/* ボーダー */
+.pear-border {
+  border: 1px solid var(--pear-border);
+}
+
+.pear-border-light {
+  border: 1px solid var(--pear-border-light);
+}
+
+/* シャドウ */
+.pear-shadow {
+  box-shadow: 0 4px 12px var(--pear-shadow);
+}
+
+.pear-shadow-sm {
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.pear-shadow-lg {
+  box-shadow: var(--shadow-lg);
+}
+
+/* ステータスバッジ */
+.pear-badge {
+  @apply px-2 py-0.5 rounded text-xs font-semibold;
+}
+
+.pear-badge-confirmed {
+  background: rgba(139, 169, 98, 0.2);
+  color: var(--pear-primary-dark);
+}
+
+.pear-badge-pending {
+  background: rgba(200, 160, 80, 0.2);
+  color: var(--pear-accent);
+}
+
+/* 統計カード */
+.pear-stat-card {
+  @apply px-5 py-4 rounded-xl text-center;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--pear-border-light);
+}
+
+/* 入力フィールドのフォーカス */
+.text-field > input:focus,
+.text-area > textarea:focus,
+.select-field > .select-trigger[aria-expanded="true"],
+.date-picker .date-picker-input:focus {
+  border-color: var(--primary);
+}
+
+.text-field > input:focus + label,
+.text-area > textarea:focus + label {
+  color: var(--primary);
+}
+
+/* スクロールバーのスタイル */
+.pear-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.pear-scrollbar::-webkit-scrollbar-track {
+  background: rgba(139, 169, 98, 0.05);
+  border-radius: 4px;
+}
+
+.pear-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(139, 169, 98, 0.3);
+  border-radius: 4px;
+}
+
+.pear-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 169, 98, 0.5);
+}
+
+/* ダイアログ/モーダル */
+.pear-dialog {
+  @apply rounded-xl;
+  box-shadow: 0 8px 32px rgba(90, 107, 60, 0.2);
+  border: 1px solid var(--pear-border);
+}
+
+/* アニメーション */
+@keyframes pear-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pear-animate-in {
+  animation: pear-fade-in 0.3s ease-out;
+}
+
+/* ホバー効果 */
+.pear-hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pear-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--pear-shadow);
+}
+
+/* ローディングスピナー */
+.pear-spinner {
+  @apply inline-block w-5 h-5 border-2 rounded-full animate-spin;
+  border-color: var(--primary);
+  border-top-color: transparent;
+}
+
+/* ==========================================
+   オーダーカード
+   ========================================== */
+
+/* オーダーカード - ベース */
+.order-card {
+  @apply rounded-lg mb-2 cursor-pointer;
+  padding: 12px 14px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.2s ease;
+}
+
+.order-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* オーダーカード - 確認済み状態 */
+.order-card.confirmed {
+  background: linear-gradient(135deg, var(--pear-card-bg) 0%, #f0f5e8 100%);
+  border: 1px solid var(--border-default);
+}
+
+
+/* 詳細ボタン */
+.order-detail-btn {
+  @apply px-3 py-2 rounded-lg text-sm font-semibold text-white whitespace-nowrap cursor-pointer border-none;
+  background: var(--primary-gradient);
+  transition: background 0.2s ease;
+}
+
+.order-detail-btn:hover {
+  background: var(--primary-gradient-hover);
+}
+
+/* ==========================================
+   カレンダー
+   ========================================== */
+
+/* カレンダーグリッド */
+.calendar-grid {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px var(--pear-shadow-light);
+  border: 1px solid var(--pear-border-light);
+}
+
+/* カレンダーヘッダー */
+.calendar-header {
+  background: linear-gradient(180deg, #fafbf7 0%, #f5f7f0 100%);
+  border-bottom: 1px solid rgba(139, 169, 98, 0.1);
+}
+
+.calendar-header.today {
+  background: linear-gradient(180deg, #f0f4e8 0%, #e8edd9 100%);
+}
+
+/* カレンダーセル */
+.calendar-cell {
+  border-right: 1px solid var(--pear-border-light);
+}
+
+.calendar-cell:last-child {
+  border-right: none;
+}
+
+.calendar-cell.today {
+  background: rgba(139, 169, 98, 0.03);
+}
+
+/* 日付表示 */
+.calendar-date {
+  @apply text-lg;
+  font-weight: 500;
+  color: #4a4a4a;
+}
+
+.calendar-date.today {
+  font-weight: 700;
+  color: var(--pear-primary-dark);
+}
+
+.calendar-day {
+  @apply text-xs font-semibold;
+  color: var(--text-muted);
+}
+
+.calendar-day.today {
+  color: var(--pear-primary-dark);
+}
+
+/* 今日マーカー */
+.calendar-today-marker {
+  @apply ml-0.5 inline-block;
+  width: 6px;
+  height: 6px;
+  background: var(--primary);
+  border-radius: 50%;
+}
+
+/* ==========================================
+   サイドバー
+   ========================================== */
+
+/* サイドバーコンテナ */
+.sidebar-container {
+  @apply rounded-2xl overflow-hidden;
+  background: white;
+  box-shadow: 0 2px 16px var(--pear-shadow-light);
+  border: 1px solid var(--pear-border-light);
+}
+
+/* サイドバーヘッダー */
+.sidebar-header {
+  @apply flex items-center justify-between px-3 py-2.5;
+  background: linear-gradient(135deg, rgba(139, 169, 98, 0.08) 0%, rgba(139, 169, 98, 0.03) 100%);
+  border-bottom: 1px solid var(--pear-border-light);
+}
+
+/* サイドバー折りたたみ時 */
+.sidebar-collapsed {
+  @apply w-10 rounded-2xl flex flex-col items-center py-3 gap-2;
+  background: white;
+  box-shadow: 0 2px 16px var(--pear-shadow-light);
+  border: 1px solid var(--pear-border-light);
+}
+
+/* 折りたたみボタン */
+.sidebar-toggle-btn {
+  @apply p-1 rounded-md cursor-pointer;
+  background: rgba(139, 169, 98, 0.1);
+  border: none;
+  transition: background 0.2s ease;
+}
+
+.sidebar-toggle-btn:hover {
+  background: rgba(139, 169, 98, 0.2);
+}
+
+/* ==========================================
+   ページヘッダー
+   ========================================== */
+
+/* ヘッダーコンテナ */
+.page-header {
+  @apply w-full sticky top-0 z-50;
+  padding: 20px 32px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--pear-border);
+}
+
+/* ロゴコンテナ */
+.pear-logo {
+  @apply relative flex items-center justify-center;
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(145deg, var(--pear-primary-light) 0%, var(--primary) 100%);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  box-shadow: 0 4px 12px rgba(139, 169, 98, 0.3);
+}
+
+/* ロゴの茎 */
+.pear-logo-stem {
+  @apply absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 8px;
+  background: var(--pear-branch);
+  border-radius: 2px;
+}
+
+/* ヘッダータイトル */
+.page-header-title {
+  @apply text-xl font-bold m-0;
+  background: linear-gradient(135deg, var(--pear-primary-dark) 0%, var(--primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 0.02em;
+}
+
+/* ヘッダーサブタイトル */
+.page-header-subtitle {
+  @apply text-xs m-0 font-medium;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+}
+
+/* ==========================================
+   日付ナビゲーション
+   ========================================== */
+
+/* ナビボタン */
+.date-nav-btn {
+  @apply px-4 py-2 rounded-lg text-sm font-medium cursor-pointer;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--pear-border);
+  color: var(--text-secondary);
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+}
+
+.date-nav-btn:hover {
+  background: rgba(139, 169, 98, 0.1);
+  border-color: var(--border-hover);
+  color: var(--pear-primary-dark);
+}
+
+/* 今日ボタン */
+.date-nav-today-btn {
+  @apply px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer;
+  background: var(--primary-gradient);
+  border: none;
+  color: white;
+  box-shadow: 0 2px 8px rgba(139, 169, 98, 0.25);
+  transition: all 0.2s ease;
+}
+
+.date-nav-today-btn:hover {
+  background: var(--primary-gradient-hover);
+  box-shadow: 0 4px 12px rgba(139, 169, 98, 0.35);
+}
+
+/* 今日ボタン（アウトライン版） */
+.date-nav-today-btn-outline {
+  @apply px-4 py-2 text-xs font-semibold cursor-pointer rounded-lg transition-all duration-200;
+  background: white;
+  border: 1px solid var(--border-default);
+  color: var(--pear-primary-dark);
+}
+
+.date-nav-today-btn-outline:hover:not(:disabled) {
+  background: var(--pear-card-bg);
+  border-color: var(--primary);
+}
+
+.date-nav-today-btn-outline:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+/* 矢印ナビボタン */
+.date-nav-arrow-btn {
+  @apply w-9 h-9 flex items-center justify-center cursor-pointer rounded-lg transition-all duration-200;
+  background: white;
+  border: 1px solid var(--pear-border-light);
+  color: var(--pear-primary-dark);
+}
+
+.date-nav-arrow-btn:hover {
+  background: var(--pear-card-bg);
+}
+
+/* 日付タイトル */
+.date-nav-title {
+  @apply text-lg font-semibold m-0;
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+}
+
+/* ==========================================
+   サイドバー追加スタイル
+   ========================================== */
+
+/* サイドバーカウントバッジ */
+.sidebar-count-badge {
+  @apply text-xs font-bold px-2 py-0.5 rounded-full;
+  background: var(--pear-accent);
+  color: white;
+}
+
+
+/* ==========================================
+   統計バー
+   ========================================== */
+
+/* 統計バー */
+.stats-bar {
+  @apply grid gap-4 mt-5;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* 統計カード */
+.stat-card {
+  @apply py-3.5 px-4 flex items-center gap-3 cursor-pointer transition-all duration-200 rounded-xl;
+  background: white;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--pear-border-light);
+}
+
+.stat-card:hover {
+  box-shadow: 0 6px 16px rgba(90, 107, 60, 0.1);
+}
+
+/* 統計アイコン */
+.stat-icon {
+  @apply w-10 h-10 flex items-center justify-center text-lg rounded-lg;
+}
+
+.stat-primary .stat-icon {
+  background: linear-gradient(135deg, rgba(139, 169, 98, 0.15) 0%, rgba(139, 169, 98, 0.08) 100%);
+}
+
+.stat-warning .stat-icon {
+  background: linear-gradient(135deg, rgba(200, 160, 80, 0.15) 0%, rgba(200, 160, 80, 0.08) 100%);
+}
+
+.stat-success .stat-icon {
+  background: linear-gradient(135deg, rgba(109, 139, 78, 0.15) 0%, rgba(109, 139, 78, 0.08) 100%);
+}
+
+/* 統計ラベル */
+.stat-label {
+  @apply text-xs font-medium;
+  color: var(--text-muted);
+}
+
+/* 統計値 */
+.stat-value {
+  @apply text-xl font-bold;
+}
+
+.stat-primary .stat-value {
+  color: var(--primary);
+}
+
+.stat-warning .stat-value {
+  color: var(--pear-accent);
+}
+
+.stat-success .stat-value {
+  color: #6d8b4e;
+}
+
+/* ==========================================
+   ページレイアウト
+   ========================================== */
+
+/* ページ背景 */
+.page-bg-gradient {
+  background: linear-gradient(135deg, #fefefe 0%, #f8f6f0 50%, #f5f0e6 100%);
+}
+
+/* 背景装飾 - 右上 */
+.bg-decoration-top-right {
+  position: absolute;
+  pointer-events: none;
+  top: -100px;
+  right: -100px;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(200, 180, 100, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+/* 背景装飾 - 左下 */
+.bg-decoration-bottom-left {
+  position: absolute;
+  pointer-events: none;
+  bottom: -150px;
+  left: -150px;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(139, 169, 98, 0.06) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+/* ==========================================
+   カレンダーグリッド追加
+   ========================================== */
+
+/* カレンダー7列グリッド */
+.calendar-grid-7cols {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(320px, 1fr));
+}
+
+/* カレンダーヘッダーボーダー */
+.calendar-header-border {
+  border-bottom: 1px solid rgba(139, 169, 98, 0.1);
+}
+
+/* カレンダーセルボーダー（最後以外） */
+.calendar-cell-border {
+  border-right: 1px solid rgba(139, 169, 98, 0.08);
+}
+
+.calendar-cell-border:last-child {
+  border-right: none;
 }

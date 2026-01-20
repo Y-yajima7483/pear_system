@@ -187,6 +187,7 @@ export default function OrderForm({
                   type="button"
                   onClick={() => remove(index)}
                   color="alert"
+                  outline
                   className="ml-2 !px-3 !py-1 !text-sm"
                 >
                   削除

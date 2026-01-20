@@ -2,17 +2,29 @@
 
 interface PageHeaderProps {
   title: string;
+  action?: React.ReactNode;
 }
 
-export default function PageHeader({ title }: PageHeaderProps) {
+export default function PageHeader({ title, action }: PageHeaderProps) {
   return (
-    <header className="w-full border-b border-border-default bg-white shadow-sm sticky top-0 z-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
-            {title}
-          </h1>
+    <header className="page-header">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3.5">
+          {/* Pear Logo */}
+          <div className="pear-logo">
+            <div className="pear-logo-stem" />
+            <span className="text-lg mt-1">🍐</span>
+          </div>
+          <div>
+            <h1 className="page-header-title">
+              PEAR System
+            </h1>
+            <p className="page-header-subtitle">
+              注文管理システム
+            </p>
+          </div>
         </div>
+        {action && <div>{action}</div>}
       </div>
     </header>
   );

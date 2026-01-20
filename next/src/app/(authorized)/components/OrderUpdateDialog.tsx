@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
-import { format, parse } from 'date-fns';
+import { format } from 'date-fns';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Dialog,
@@ -128,13 +128,6 @@ export default function OrderUpdateDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button type="button" color="primary">
-            編集
-          </Button>
-        )}
-      </DialogTrigger>
       <DialogContent
         className="max-h-[70vh] overflow-y-scroll p-0 max-w-xl"
         onOpenAutoFocus={(e) => e.preventDefault()}

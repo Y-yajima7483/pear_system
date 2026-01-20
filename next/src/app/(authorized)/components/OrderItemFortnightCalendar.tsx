@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useEffect, useState, useRef } from 'react'
-import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import useGetApi from '@/lib/api/useGetApi'
 import usePutApi from '@/lib/api/usePutApi';
@@ -23,14 +22,14 @@ import {
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
+  DragOverEvent,
 } from '@dnd-kit/core';
 import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
+  arrayMove,
 } from '@dnd-kit/sortable';
-
-
 
 export type CalendarEvent = {
   id: string
@@ -47,24 +46,22 @@ export type TwoWeekCalendarProps = {
   events?: CalendarEvent[]
 }
 
-function formatDayLabel(date: Date, locale: string = 'ja-JP') {
-  const wd = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(date)
-  const md = new Intl.DateTimeFormat(locale, { month: 'numeric', day: 'numeric' }).format(date)
-  return `${md} (${wd})`
-}
-
 interface OrderItemFortnightCalendarProps {
   refreshKey?: number;
   baseDate?: Date;
 }
 
+// 曜日を取得
+const getDayOfWeek = (date: Date) => {
+  const days = ['日', '月', '火', '水', '木', '金', '土'];
+  return days[date.getDay()];
+};
+
 export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = new Date() }: OrderItemFortnightCalendarProps) {
   const { openOverlay, closeOverlay } = overlayStore();
   const {update, loading} = usePutApi(commonApiHookOptions);
   const { get: getOrderList } = useGetApi<GetOrderListApiResponse>(commonApiHookOptions);
-  // バックエンドから受け取った日付キー配列（unreserved_dataを除く）
   const [dateKeys, setDateKeys] = useState<string[]>([]);
-  const minInnerWidth = 10 + 7 * 350;
   const [orderData, setOrderData] = useState<{[key: string]:Array<GetOrderListApiResponseContent>}>({});
   const [unreservedData, setUnreservedData] = useState<Array<GetOrderListApiResponseContent<null>>>([]);
   const [activeId, setActiveId] = useState<number | null>(null);
@@ -73,26 +70,30 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [hasInitialScroll, setHasInitialScroll] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const prevBaseDateRef = useRef<Date>(baseDate);
   const calendarScrollRef = useRef<HTMLDivElement>(null);
-  
+  const dragStartStateRef = useRef<{
+    sourceContainer: string | null;
+    item: GetOrderListApiResponseContent | GetOrderListApiResponseContent<null> | null;
+  }>({ sourceContainer: null, item: null });
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-  // 受け取り日更新
+
   const fetchOrderUpdate = async({id, pickup_date}: {id:number, pickup_date:string|null})=> {
       const res = await update(`/order/${id}/pickup-date`, {
         pickup_date
       });
       return res.success;
   }
-  
+
   const fetchOrderData = async () => {
     try {
-      // 初回ロード以外は既存のオーバーレイを使用
       if (!isInitialLoading) {
         openOverlay();
       }
@@ -103,15 +104,9 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
       });
       if(res.success) {
         const { unreserved_data, ...dateBasedData } = res.data;
-
-        // unreserved_dataを設定
         setUnreservedData(unreserved_data);
-
-        // 日付キーのみを抽出してソート（unreserved_dataを除く）
         const dates = Object.keys(dateBasedData).sort();
         setDateKeys(dates);
-
-        // 注文データを設定
         setOrderData(dateBasedData as {[key: string]: Array<GetOrderListApiResponseContent>});
       }
     } finally {
@@ -121,162 +116,213 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
       setIsInitialLoading(false);
     }
   };
-  
+
   useEffect(()=> {
-    // baseDateが変更された場合のみローディング状態をリセット
     const baseDateChanged = prevBaseDateRef.current.getTime() !== baseDate.getTime();
     if (baseDateChanged) {
       setIsInitialLoading(true);
       prevBaseDateRef.current = baseDate;
     }
-
     fetchOrderData();
-
-    // baseDateが変更されたらスクロール初期化フラグをリセット
     if (baseDateChanged) {
       setHasInitialScroll(false);
     }
   },[refreshKey, baseDate]);
 
-  // 初期表示時に現在の日付までスクロール（一度だけ実行）
   useEffect(() => {
     if (calendarScrollRef.current && !hasInitialScroll && dateKeys.length > 0) {
-      // 先頭にスクロール（1週間表示なので常に先頭から表示）
       calendarScrollRef.current.scrollLeft = 0;
       setHasInitialScroll(true);
     }
   }, [dateKeys, hasInitialScroll]);
-  
+
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    setActiveId(Number(active.id));
-  };
-  
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    if (!over) return;
-    openOverlay();
-    const activeId = Number(active.id);
-    const overId = String(over.id);
-    
-    // ドロップ先が日付列の場合
-    if (overId.startsWith('date-')) {
-      const targetDate = overId.replace('date-', '');
-      
-      // 未登録データからの移動
-      const draggedItemFromUnreserved = unreservedData.find(item => item.id === activeId);
-      if (draggedItemFromUnreserved) {
-        // 楽観的更新
-        setUnreservedData(prev => prev.filter(item => item.id !== activeId));
-        setOrderData(prev => ({
-          ...prev,
-          [targetDate]: [...(prev?.[targetDate] || []), { ...draggedItemFromUnreserved, pickup_date: targetDate }]
-        }));
-        
-        // APIコール
-        try {
-          const res = await fetchOrderUpdate({
-            id: activeId,
-            pickup_date: targetDate
-          });
-          if(!res) throw new Error('更新に失敗しました');
-        } catch (error) {
-          // エラー時はロールバック
-          setUnreservedData(prev => [...prev, draggedItemFromUnreserved]);
-          setOrderData(prev => ({
-            ...prev,
-            [targetDate]: prev[targetDate].filter(item => item.id !== activeId)
-          }));
-        }
-      } else {
-        // 既存の日付から別の日付への移動
-        let draggedItem: GetOrderListApiResponseContent | undefined;
-        let sourceDate: string | undefined;
-        
-        if (orderData) {
-          for (const [date, items] of Object.entries(orderData)) {
-            const item = items.find(i => i.id === activeId);
-            if (item) {
-              draggedItem = item;
-              sourceDate = date;
-              break;
-            }
-          }
-        }
-        
-        if (draggedItem && sourceDate && sourceDate !== targetDate) {
-          // 楽観的更新
-          setOrderData(prev => {
-            const newData = { ...prev };
-            newData[sourceDate] = newData[sourceDate].filter(item => item.id !== activeId);
-            newData[targetDate] = [...(newData[targetDate] || []), { ...draggedItem, pickup_date: targetDate }];
-            return newData;
-          });
-          
-          // APIコール
-          try {
-            const res = await fetchOrderUpdate({
-              id: activeId,
-              pickup_date: targetDate
-            });
-            if(!res) throw new Error('更新に失敗しました');
-          } catch (error) {
-            // エラー時はロールバック
-            setOrderData(prev => {
-              const newData = { ...prev };
-              newData[targetDate] = newData[targetDate].filter(item => item.id !== activeId);
-              newData[sourceDate] = [...(newData[sourceDate] || []), draggedItem];
-              return newData;
-            });
-          }
+    const id = Number(active.id);
+    setActiveId(id);
+
+    // ドラッグ開始時の状態を保存
+    let sourceContainer: string | null = null;
+    let item: GetOrderListApiResponseContent | GetOrderListApiResponseContent<null> | null = null;
+
+    const unreservedItem = unreservedData.find(i => i.id === id);
+    if (unreservedItem) {
+      sourceContainer = 'unreserved';
+      item = unreservedItem;
+    } else {
+      for (const [date, items] of Object.entries(orderData)) {
+        const found = items.find(i => i.id === id);
+        if (found) {
+          sourceContainer = date;
+          item = found;
+          break;
         }
       }
+    }
+
+    dragStartStateRef.current = { sourceContainer, item };
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    const activeId = Number(active.id);
+    const overId = over.id;
+
+    // ドロップ先のコンテナを特定
+    let targetContainer: string | null = null;
+    let overIndex = -1;
+
+    // over.idがdate-で始まる場合はドロップエリア自体
+    if (String(overId).startsWith('date-')) {
+      targetContainer = String(overId).replace('date-', '');
     } else if (overId === 'unreserved') {
-      // 日付列から未登録エリアへの移動
-      let draggedItem: GetOrderListApiResponseContent | undefined;
-      let sourceDate: string | undefined;
-      
-      if (orderData) {
+      targetContainer = 'unreserved';
+    } else {
+      // over.idが数値の場合は既存のカードの上にいる
+      const overIdNum = Number(overId);
+
+      // unreservedDataから探す
+      const unreservedIndex = unreservedData.findIndex(item => item.id === overIdNum);
+      if (unreservedIndex !== -1) {
+        targetContainer = 'unreserved';
+        overIndex = unreservedIndex;
+      } else {
+        // orderDataから探す
         for (const [date, items] of Object.entries(orderData)) {
-          const item = items.find(i => i.id === activeId);
-          if (item) {
-            draggedItem = item;
-            sourceDate = date;
+          const idx = items.findIndex(item => item.id === overIdNum);
+          if (idx !== -1) {
+            targetContainer = date;
+            overIndex = idx;
             break;
           }
         }
       }
-      
-      if (draggedItem && sourceDate) {
-        // 楽観的更新
-        setOrderData(prev => ({
-          ...prev,
-          [sourceDate]: prev![sourceDate].filter(item => item.id !== activeId)
-        }));
-        setUnreservedData(prev => [...prev, { ...draggedItem, pickup_date: null }]);
-        
-        // APIコール
-        try {
-          const res = await fetchOrderUpdate({
-            id: activeId,
-            pickup_date: null
-          });
-          if(!res) throw new Error('更新に失敗しました');
-        } catch (error) {
-          // エラー時はロールバック
-          setUnreservedData(prev => prev.filter(item => item.id !== activeId));
-          setOrderData(prev => ({
-            ...prev,
-            [sourceDate]: [...prev![sourceDate], draggedItem]
-          }));
+    }
+
+    if (!targetContainer) return;
+
+    // activeアイテムの現在のコンテナを特定
+    let sourceContainer: string | null = null;
+    let activeIndex = -1;
+
+    const unreservedActiveIndex = unreservedData.findIndex(item => item.id === activeId);
+    if (unreservedActiveIndex !== -1) {
+      sourceContainer = 'unreserved';
+      activeIndex = unreservedActiveIndex;
+    } else {
+      for (const [date, items] of Object.entries(orderData)) {
+        const idx = items.findIndex(item => item.id === activeId);
+        if (idx !== -1) {
+          sourceContainer = date;
+          activeIndex = idx;
+          break;
         }
       }
     }
-    closeOverlay();
-    setActiveId(null);
+
+    if (!sourceContainer) return;
+
+    // 同じコンテナ内での並び替え
+    if (sourceContainer === targetContainer && overIndex !== -1 && activeIndex !== overIndex) {
+      if (sourceContainer === 'unreserved') {
+        setUnreservedData(prev => arrayMove(prev, activeIndex, overIndex));
+      } else {
+        setOrderData(prev => ({
+          ...prev,
+          [sourceContainer]: arrayMove(prev[sourceContainer], activeIndex, overIndex)
+        }));
+      }
+    }
+    // 異なるコンテナ間の移動
+    else if (sourceContainer !== targetContainer) {
+      if (sourceContainer === 'unreserved') {
+        const draggedItem = unreservedData[activeIndex];
+        setUnreservedData(prev => prev.filter(item => item.id !== activeId));
+
+        if (targetContainer === 'unreserved') {
+          // このケースは発生しない
+        } else {
+          const insertIndex = overIndex !== -1 ? overIndex : (orderData[targetContainer]?.length || 0);
+          setOrderData(prev => {
+            const newItems = [...(prev[targetContainer] || [])];
+            newItems.splice(insertIndex, 0, { ...draggedItem, pickup_date: targetContainer } as GetOrderListApiResponseContent);
+            return { ...prev, [targetContainer]: newItems };
+          });
+        }
+      } else {
+        const draggedItem = orderData[sourceContainer][activeIndex];
+        setOrderData(prev => ({
+          ...prev,
+          [sourceContainer]: prev[sourceContainer].filter(item => item.id !== activeId)
+        }));
+
+        if (targetContainer === 'unreserved') {
+          const insertIndex = overIndex !== -1 ? overIndex : unreservedData.length;
+          setUnreservedData(prev => {
+            const newItems = [...prev];
+            newItems.splice(insertIndex, 0, { ...draggedItem, pickup_date: null } as GetOrderListApiResponseContent<null>);
+            return newItems;
+          });
+        } else {
+          const insertIndex = overIndex !== -1 ? overIndex : (orderData[targetContainer]?.length || 0);
+          setOrderData(prev => {
+            const newItems = [...(prev[targetContainer] || [])];
+            newItems.splice(insertIndex, 0, { ...draggedItem, pickup_date: targetContainer });
+            return { ...prev, [targetContainer]: newItems };
+          });
+        }
+      }
+    }
   };
-  
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active } = event;
+    const activeId = Number(active.id);
+
+    // 現在のアイテムの位置を特定
+    let currentContainer: string | null = null;
+    let currentItem: GetOrderListApiResponseContent | GetOrderListApiResponseContent<null> | null = null;
+
+    const unreservedItem = unreservedData.find(item => item.id === activeId);
+    if (unreservedItem) {
+      currentContainer = 'unreserved';
+      currentItem = unreservedItem;
+    } else {
+      for (const [date, items] of Object.entries(orderData)) {
+        const item = items.find(i => i.id === activeId);
+        if (item) {
+          currentContainer = date;
+          currentItem = item;
+          break;
+        }
+      }
+    }
+
+    // 開始時と異なるコンテナに移動した場合のみAPIを呼び出す
+    const startState = dragStartStateRef.current;
+    if (currentContainer && currentItem && startState.sourceContainer !== currentContainer) {
+      openOverlay();
+      const newPickupDate = currentContainer === 'unreserved' ? null : currentContainer;
+
+      try {
+        const res = await fetchOrderUpdate({
+          id: activeId,
+          pickup_date: newPickupDate
+        });
+        if (!res) throw new Error('更新に失敗しました');
+      } catch (error) {
+        // エラー時はデータを再取得して元に戻す
+        await fetchOrderData();
+      }
+      closeOverlay();
+    }
+
+    setActiveId(null);
+    dragStartStateRef.current = { sourceContainer: null, item: null };
+  };
+
   const getActiveItem = () => {
     if (!activeId) return null;
 
@@ -307,11 +353,9 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
     fetchOrderData();
   };
 
-  // GetOrderListApiResponseContent を OrderDetailData に変換
   const convertToOrderDetailData = (order: GetOrderListApiResponseContent | GetOrderListApiResponseContent<null>): OrderDetailData | null => {
     if (!order) return null;
 
-    // items を variety_id でグループ化
     const itemsByVariety: { [key: number]: { variety_id: number; variety_name: string; products: Array<{ product_id: number; product_name: string; quantity: number }> } } = {};
 
     order.items.forEach((item) => {
@@ -343,7 +387,25 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
     };
   };
 
-  // 初期ロード中はローディング画面を表示
+  // 統計計算
+  const totalOrders = Object.values(orderData).reduce((sum, items) => sum + items.length, 0) + unreservedData.length;
+  const unprocessedOrders = unreservedData.length;
+  const todayKey = format(new Date(), 'yyyy-MM-dd');
+  const todayOrders = orderData[todayKey]?.length || 0;
+
+  // 日付列の最小高さを計算（カード1枚約100px、3枚分の余白を追加）
+  const CARD_HEIGHT = 100;
+  const EXTRA_CARDS = 3;
+  const MIN_HEIGHT = 720;
+  const calculateColumnHeight = (itemCount: number) => {
+    const calculatedHeight = (itemCount + EXTRA_CARDS) * CARD_HEIGHT;
+    return Math.max(MIN_HEIGHT, calculatedHeight);
+  };
+  const maxColumnHeight = Math.max(
+    MIN_HEIGHT,
+    ...Object.values(orderData).map(items => calculateColumnHeight(items.length))
+  );
+
   if (isInitialLoading) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
@@ -357,80 +419,167 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
+      autoScroll={{
+        threshold: {
+          x: 0.15,
+          y: 0.15,
+        },
+        acceleration: 15,
+        interval: 5,
+      }}
     >
-      <div className="flex">
-        <div className="w-[27%] h-[85vh] overflow-x-auto overflow-y-auto pt-2">
+      {/* Main Content Area */}
+      <div className="flex gap-4">
+        {/* Collapsible Sidebar - Unassigned Orders */}
+        <div
+          className={`sidebar-container flex-shrink-0 overflow-hidden transition-all duration-300 ${sidebarExpanded ? 'w-[220px]' : 'w-12'}`}
+        >
+          {/* Sidebar Header */}
           <div
-            className="w-full h-12 border-l border-t border-b border-gray-900 bg-white px-3 flex items-center text-sm font-medium"
+            onClick={() => setSidebarExpanded(!sidebarExpanded)}
+            className={`sidebar-header cursor-pointer ${sidebarExpanded ? 'justify-between p-4' : 'justify-center p-3'}`}
           >
-            受け取り日未登録注文
-          </div>
-          <DroppableArea id="unreserved" className="min-h-full">
-            <SortableContext 
-              items={unreservedData.map(item => item.id)}
-              strategy={verticalListSortingStrategy}
+            {sidebarExpanded && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold pear-text-muted tracking-wide">
+                  未登録注文
+                </span>
+                <span className="sidebar-count-badge">
+                  {unreservedData.length}
+                </span>
+              </div>
+            )}
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className={`pear-text-muted transition-transform duration-300 ${!sidebarExpanded ? 'rotate-180' : ''}`}
             >
-              <div className="space-y-8 px-1 py-4">
-                {unreservedData.map((data)=> (
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </div>
+
+          {/* Sidebar Content */}
+          {sidebarExpanded && (
+            <DroppableArea id="unreserved" className="p-3 min-h-[420px]">
+              <SortableContext
+                items={unreservedData.map(item => item.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {unreservedData.map((order) => (
                   <OrderItemCard
-                    key={data.id}
-                    data={data}
-                    onDetailClick={() => handleOrderDetailClick(data)}
+                    key={order.id}
+                    data={order}
+                    onDetailClick={() => handleOrderDetailClick(order)}
                   />
                 ))}
-              </div>
-            </SortableContext>
-          </DroppableArea>
+              </SortableContext>
+            </DroppableArea>
+          )}
+
+          {/* Collapsed state indicator */}
+          {!sidebarExpanded && (
+            <div className="py-4 flex flex-col items-center gap-2">
+              <span className="sidebar-count-badge">
+                {unreservedData.length}
+              </span>
+              <span className="text-[10px] font-semibold pear-text-muted [writing-mode:vertical-rl] tracking-widest">
+                未登録
+              </span>
+            </div>
+          )}
         </div>
-        <div className="w-[73%] pt-2">
-          <div ref={calendarScrollRef} className="w-full h-[85vh] overflow-x-auto overflow-y-auto border border-gray-900">
-            <div className="h-full" style={{ minWidth: `${minInnerWidth}px` }}>
-              <div className="h-full grid [grid-template-columns:10px_repeat(7,minmax(250px,1fr))]">
-                <div className="h-12 sticky top-0 z-10" />
-                {dateKeys.map((dateKey, idx) => {
-                  const dateItems = orderData?.[dateKey] || [];
-                  const isCurrentDate = dateKey === format(new Date(), 'yyyy-MM-dd');
-                  // yyyy-MM-dd形式の文字列から日付オブジェクトを作成してラベル表示
-                  const dateObj = new Date(dateKey);
-                  return (
-                    <div key={`hdr-${idx}`} className="flex flex-wrap h-full">
-                      <div
-                        className={`w-full h-12 border-b border-l border-gray-900 px-3 flex items-center text-sm font-medium ${
-                          isCurrentDate ? 'bg-blue-50 text-blue-900 font-bold' : 'bg-white'
-                        }`}
-                      >
-                        {formatDayLabel(dateObj)}
-                      </div>
-                      <DroppableArea
-                        id={`date-${dateKey}`}
-                        className={`w-full h-full border-l border-gray-900 bg-blue-50/20 ${
-                          isCurrentDate ? 'bg-blue-50/20' : ''
-                        }`}
-                      >
-                        <SortableContext
-                          items={dateItems.map(item => item.id)}
-                          strategy={verticalListSortingStrategy}
-                        >
-                          <div className="px-1 py-4 space-y-4 min-h-[200px]">
-                            {dateItems.map((data)=> (
-                              <OrderItemCard
-                                key={data.id}
-                                data={data}
-                                onDetailClick={() => handleOrderDetailClick(data)}
-                              />
-                            ))}
-                          </div>
-                        </SortableContext>
-                      </DroppableArea>
+
+        {/* Calendar Grid */}
+        <div
+          ref={calendarScrollRef}
+          className="calendar-grid flex-1 overflow-x-auto overflow-y-auto pear-scrollbar max-h-[calc(100vh-280px)]"
+        >
+          <div className="min-w-[2240px]">
+            {/* Day Headers */}
+            <div className="calendar-grid-7cols sticky top-0 z-10 calendar-header-border">
+              {dateKeys.map((dateKey, index) => {
+                const dateObj = new Date(dateKey);
+                const isCurrentDate = dateKey === format(new Date(), 'yyyy-MM-dd');
+
+                return (
+                  <div
+                    key={`hdr-${index}`}
+                    className={`calendar-header py-3.5 px-2 text-center ${isCurrentDate ? 'today' : ''} ${index < 6 ? 'calendar-cell-border' : ''}`}
+                  >
+                    <div className="flex items-center justify-center gap-1.5">
+                      <span className={`calendar-date ${isCurrentDate ? 'today' : ''}`}>
+                        {dateObj.getDate()}
+                      </span>
+                      <span className={`calendar-day ${isCurrentDate ? 'today' : ''}`}>
+                        ({getDayOfWeek(dateObj)})
+                      </span>
+                      {isCurrentDate && <span className="calendar-today-marker" />}
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Day Columns */}
+            <div
+              className="calendar-grid-7cols"
+              style={{ minHeight: `${maxColumnHeight}px` }}
+            >
+              {dateKeys.map((dateKey, index) => {
+                const dateItems = orderData?.[dateKey] || [];
+                const isCurrentDate = dateKey === format(new Date(), 'yyyy-MM-dd');
+
+                return (
+                  <DroppableArea
+                    key={`col-${index}`}
+                    id={`date-${dateKey}`}
+                    className={`calendar-cell p-1.5 ${isCurrentDate ? 'today' : ''}`}
+                  >
+                    <SortableContext
+                      items={dateItems.map(item => item.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {dateItems.map((order) => (
+                        <OrderItemCard
+                          key={order.id}
+                          data={order}
+                          onDetailClick={() => handleOrderDetailClick(order)}
+                        />
+                      ))}
+                    </SortableContext>
+                  </DroppableArea>
+                );
+              })}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Stats Bar */}
+      <div className="stats-bar">
+        {[
+          { label: '今週の注文', value: totalOrders.toString(), icon: '📦', colorClass: 'stat-primary' },
+          { label: '未処理', value: unprocessedOrders.toString(), icon: '⏳', colorClass: 'stat-warning' },
+          { label: '本日の受渡', value: todayOrders.toString(), icon: '🍐', colorClass: 'stat-success' },
+        ].map((stat, index) => (
+          <div key={index} className={`stat-card ${stat.colorClass}`}>
+            <div className="stat-icon">
+              {stat.icon}
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="stat-label">{stat.label}</span>
+              <span className="stat-value">{stat.value}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
       <DragOverlay>
         {activeId ? (
           <OrderItemCard data={getActiveItem()!} />
