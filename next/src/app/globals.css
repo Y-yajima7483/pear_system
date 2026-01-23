@@ -258,13 +258,13 @@
     --warning-bg: #2a1a0a;
 
     /* Info Colors - ダークモード用 */
-    --info: #22d3ee;
-    --info-hover: #67e8f9;
-    --info-active: #a5f3fc;
-    --info-light: #67e8f9;
-    --info-lighter: #cffafe;
-    --info-dark: #06b6d4;
-    --info-bg: #083344;
+    --info: #5B9A9A;
+    --info-hover: #4A8585;
+    --info-active: #3D7070;
+    --info-light: #7DB5B5;
+    --info-lighter: #A8D4D4;
+    --info-dark: #2F5555;
+    --info-bg: #F5FAFA;
 
     /* Pear Theme Colors - ダークモード用 */
     --pear-primary: #a8c47a;
@@ -663,81 +663,44 @@ input[type="time"]::-webkit-clear-button {
 }
 
 .button-base.alert {
-  background: linear-gradient(135deg, var(--error) 0%, var(--error-dark) 100%);
-  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2), inset 0 1px 0 rgba(255,255,255,0.15);
-}
-
-.button-base.alert:hover {
-  background: linear-gradient(135deg, var(--error-light) 0%, var(--error) 100%);
-  box-shadow: 0 3px 8px rgba(239, 68, 68, 0.25), inset 0 1px 0 rgba(255,255,255,0.15);
-}
-
-.button-base.alert:active {
-  background: linear-gradient(135deg, var(--error-dark) 0%, var(--error-active) 100%);
-}
-
-/* Success Button */
-.button-base.success {
-  background: var(--primary-gradient);
-  box-shadow: 0 2px 4px rgba(90, 107, 60, 0.15), inset 0 1px 0 rgba(255,255,255,0.15);
+  background: var(--error);
   color: white;
 }
 
-.button-base.success:hover {
-  background: var(--primary-gradient-hover);
-  box-shadow: 0 3px 8px rgba(90, 107, 60, 0.2), inset 0 1px 0 rgba(255,255,255,0.15);
+.button-base.alert:hover {
+  background: var(--error-light);
 }
 
-.button-base.success:active {
-  background: linear-gradient(135deg, var(--primary-active) 0%, var(--primary-dark) 100%);
+.button-base.alert:active {
+  background: var(--error-dark);
 }
 
 /* Warning Button */
 .button-base.warning {
-  background: linear-gradient(135deg, var(--warning) 0%, var(--warning-dark) 100%);
-  box-shadow: 0 2px 4px rgba(200, 160, 80, 0.2), inset 0 1px 0 rgba(255,255,255,0.15);
+  background: var(--warning);
   color: white;
 }
 
 .button-base.warning:hover {
-  background: linear-gradient(135deg, var(--warning-light) 0%, var(--warning) 100%);
-  box-shadow: 0 3px 8px rgba(200, 160, 80, 0.25), inset 0 1px 0 rgba(255,255,255,0.15);
+  background: var(--warning-light);
 }
 
 .button-base.warning:active {
-  background: linear-gradient(135deg, var(--warning-dark) 0%, var(--warning-active) 100%);
+  background: var(--warning-dark);
 }
 
 /* Info Button */
 .button-base.info {
-  background: linear-gradient(135deg, var(--info) 0%, var(--info-dark) 100%);
-  box-shadow: 0 2px 4px rgba(6, 182, 212, 0.2), inset 0 1px 0 rgba(255,255,255,0.15);
+  background: var(--info);
   color: white;
 }
 
 .button-base.info:hover {
-  background: linear-gradient(135deg, var(--info-light) 0%, var(--info) 100%);
-  box-shadow: 0 3px 8px rgba(6, 182, 212, 0.25), inset 0 1px 0 rgba(255,255,255,0.15);
+  background: var(--info-light);
 }
 
 .button-base.info:active {
-  background: linear-gradient(135deg, var(--info-dark) 0%, var(--info-active) 100%);
-}
-
-/* Pear Theme Button (Same as primary) */
-.button-base.pear {
-  background: var(--primary-gradient);
-  box-shadow: 0 2px 4px rgba(90, 107, 60, 0.15), inset 0 1px 0 rgba(255,255,255,0.15);
-  color: white;
-}
-
-.button-base.pear:hover {
-  background: var(--primary-gradient-hover);
-  box-shadow: 0 3px 8px rgba(90, 107, 60, 0.2), inset 0 1px 0 rgba(255,255,255,0.15);
-}
-
-.button-base.pear:active {
-  background: linear-gradient(135deg, var(--primary-active) 0%, var(--primary-dark) 100%);
+  background: var(--info-dark);
 }
 
 /* Border Button */
@@ -921,14 +884,19 @@ input[type="time"]::-webkit-clear-button {
   @apply px-2 py-0.5 rounded text-xs font-semibold;
 }
 
-.pear-badge-confirmed {
+.pear-badge.recieved {
   background: rgba(139, 169, 98, 0.2);
   color: var(--pear-primary-dark);
 }
 
-.pear-badge-pending {
+.pear-badge.pending {
   background: rgba(200, 160, 80, 0.2);
   color: var(--pear-accent);
+}
+
+.pear-badge.canceled {
+  background: rgba(156, 163, 175, 0.2);
+  color: #4b5563;
 }
 
 /* 統計カード */
@@ -1030,9 +998,15 @@ input[type="time"]::-webkit-clear-button {
   box-shadow: var(--shadow-md);
 }
 
-/* オーダーカード - 確認済み状態 */
-.order-card.confirmed {
+/* オーダーカード - 受取済 */
+.order-card.recieved {
   background: linear-gradient(135deg, var(--pear-card-bg) 0%, #f0f5e8 100%);
+  border: 1px solid var(--border-default);
+}
+
+/* オーダーカード - キャンセル */
+.order-card.canceled {
+  background: linear-gradient(135deg, var(--pear-accent) 0%, #f0f5e8 100%);
   border: 1px solid var(--border-default);
 }
 

@@ -24,7 +24,7 @@ export interface ItemValueType {
 export interface OrderFormInputs {
   customer_name: string; // お客様名
   notes: string; // 備考
-  pickup_date: string;
+  pickup_date: string | Date; // 空文字列 or Dateオブジェクト
   pickup_time: string;
   items: Array<ItemValueType> // 複数品種の配列
 }

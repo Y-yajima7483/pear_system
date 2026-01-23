@@ -92,4 +92,56 @@ class OrderRepository implements OrderRepositoryInterface
             return $order->load('orderItems.product.variety');
         });
     }
+
+    /**
+     * 注文を更新する
+     *
+     * @param  int  $orderId  注文ID
+     * @param  array  $orderData  注文データ
+     */
+    public function updateOrder(int $orderId, array $orderData): Order
+    {
+        return DB::transaction(function () use ($orderId, $orderData) {
+            // 注文を取得
+            $order = Order::findOrFail($orderId);
+
+            // 注文の基本情報を更新
+            $order->update([
+                'customer_name' => $orderData['customer_name'],
+                'pickup_date' => $orderData['pickup_date'] ?? null,
+                'pickup_time' => $orderData['pickup_time'] ?? null,
+                'notes' => $orderData['notes'] ?? null,
+            ]);
+
+            // 既存の注文明細を削除
+            $order->orderItems()->delete();
+
+            // 新しい注文明細を作成
+            foreach ($orderData['items'] as $varietyGroup) {
+                foreach ($varietyGroup['items'] as $item) {
+                    $order->orderItems()->create([
+                        'product_id' => $item['product_id'],
+                        'quantity' => $item['quantity'],
+                    ]);
+                }
+            }
+
+            // リレーションをロードして返す
+            return $order->load('orderItems.product.variety');
+        });
+    }
+
+    /**
+     * 注文のステータスを更新する
+     *
+     * @param  int  $orderId  注文ID
+     * @param  string  $status  変更後のステータス
+     */
+    public function updateOrderStatus(int $orderId, string $status): Order
+    {
+        $order = Order::findOrFail($orderId);
+        $order->update(['status' => $status]);
+
+        return $order;
+    }
 }

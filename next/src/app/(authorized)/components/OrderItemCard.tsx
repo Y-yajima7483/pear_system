@@ -1,6 +1,7 @@
 import type { GetOrderListApiResponseContent } from '@/types/order';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { getOrderItemStatusLabelAndClass } from '@/lib/utils';
 
 interface OrderItemCardProps {
   data: GetOrderListApiResponseContent | GetOrderListApiResponseContent<null>;
@@ -31,13 +32,14 @@ export default function OrderItemCard({data, onDetailClick}: OrderItemCardProps)
     opacity: isDragging ? 0.5 : undefined,
   };
 
-  const isConfirmed = data.status === 'picked_up';
+  const { label, className } = getOrderItemStatusLabelAndClass(data.status);
+
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`order-card ${isConfirmed ? 'confirmed' : ''}`}
+      className={`order-card ${className}`}
       {...attributes}
     >
       {/* ドラッグ可能エリア */}
@@ -50,8 +52,8 @@ export default function OrderItemCard({data, onDetailClick}: OrderItemCardProps)
           <span className="text-sm font-bold flex-1 whitespace-nowrap overflow-hidden text-ellipsis pear-text-primary">
             {data.customer_name}
           </span>
-          <span className={`pear-badge text-xs ${isConfirmed ? 'pear-badge-confirmed' : 'pear-badge-pending'}`}>
-            {isConfirmed ? '確認済' : '未確認'}
+          <span className={`pear-badge text-xs ${className}`}>
+            {label}
           </span>
         </div>
 

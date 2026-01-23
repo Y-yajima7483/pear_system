@@ -1,3 +1,12 @@
+
+// 店頭受取ステータス
+export const orderItemStatus = {
+  PENDING: 'pending',
+  PICKED_UP: 'picked_up',
+  CANCELED: 'canceled',
+} as const;
+
+export type OrderItemStatusType = (typeof orderItemStatus)[keyof typeof orderItemStatus];
 // 店頭受け取り注文一覧取得APIレスポンス
 export interface GetOrderListApiResponseContent<T=string> {
   id: number;
@@ -5,7 +14,7 @@ export interface GetOrderListApiResponseContent<T=string> {
   pickup_date: T;
   pickup_time: string | null;
   notes: string | null;
-  status: 'pending'|'picked_up'|'canceled';
+  status: OrderItemStatusType;
   items: Array<{variety_id: number, variety: string, product_id: number, item: string, quantity: number}>
 }
 // 店頭受け取り注文一覧取得APIレスポンス

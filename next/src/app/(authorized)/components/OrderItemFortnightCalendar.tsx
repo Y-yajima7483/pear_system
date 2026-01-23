@@ -590,6 +590,7 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
         open={isDetailDialogOpen}
         onOpenChange={setIsDetailDialogOpen}
         onEditClick={handleEditClick}
+        onStatusChanged={handleOrderUpdated}
       />
       {selectedOrder && convertToOrderDetailData(selectedOrder) && (
         <OrderUpdateDialog

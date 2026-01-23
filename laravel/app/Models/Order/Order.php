@@ -15,6 +15,19 @@ class Order extends Model
     /**
      * 対応テーブル
      */
+    /**
+     * ステータス定数
+     */
+    const STATUS_PENDING = 'pending';
+    const STATUS_PICKED_UP = 'picked_up';
+    const STATUS_CANCELED = 'canceled';
+
+    const STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_PICKED_UP,
+        self::STATUS_CANCELED,
+    ];
+
     protected $table = 'orders';
 
     /**

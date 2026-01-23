@@ -20,4 +20,20 @@ interface OrderRepositoryInterface
      * @param  array  $orderData  注文データ
      */
     public function createOrder(array $orderData): Order;
+
+    /**
+     * 注文を更新する
+     *
+     * @param  int  $orderId  注文ID
+     * @param  array  $orderData  注文データ
+     */
+    public function updateOrder(int $orderId, array $orderData): Order;
+
+    /**
+     * 注文のステータスを更新する
+     *
+     * @param  int  $orderId  注文ID
+     * @param  string  $status  変更後のステータス
+     */
+    public function updateOrderStatus(int $orderId, string $status): Order;
 }

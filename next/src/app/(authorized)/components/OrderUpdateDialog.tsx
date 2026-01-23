@@ -12,7 +12,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import Button from "@/components/ui/Button";
 import OrderForm, { OrderFormInputs, ItemValueType } from './OrderForm';
@@ -33,7 +32,6 @@ interface OrderItemRequestType {
 interface OrderUpdateDialogProps {
   orderData: OrderDetailData;
   onOrderUpdated?: () => void;
-  trigger?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
@@ -41,7 +39,6 @@ interface OrderUpdateDialogProps {
 export default function OrderUpdateDialog({
   orderData,
   onOrderUpdated,
-  trigger,
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange
 }: OrderUpdateDialogProps) {
@@ -70,7 +67,7 @@ export default function OrderUpdateDialog({
     return {
       customer_name: data.customer_name,
       notes: data.notes || '',
-      pickup_date: data.pickup_date || '',
+      pickup_date: data.pickup_date ? new Date(data.pickup_date) : '',
       pickup_time: data.pickup_time || '',
       items,
     };

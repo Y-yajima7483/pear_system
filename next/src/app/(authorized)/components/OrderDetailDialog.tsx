@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import {
@@ -14,26 +13,37 @@ import {
 } from "@/components/ui/dialog";
 import Button from "@/components/ui/Button";
 import type { GetOrderListApiResponseContent } from '@/types/order';
+import { orderItemStatus } from '@/types/order';
+import { getOrderItemStatusLabelAndClass } from '@/lib/utils';
+import usePatchApi from '@/lib/api/usePatchApi';
+import { commonApiHookOptions } from '@/lib/api/commonErrorHandlers';
 
 interface OrderDetailDialogProps {
   order: GetOrderListApiResponseContent | GetOrderListApiResponseContent<null> | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onEditClick?: () => void;
+  onStatusChanged?: () => void;
 }
 
-const statusLabels = {
-  pending: '受付中',
-  picked_up: '受取済',
-  canceled: 'キャンセル',
-};
+export default function OrderDetailDialog({ order, open, onOpenChange, onEditClick, onStatusChanged }: OrderDetailDialogProps) {
+  const { patch, loading: patchLoading } = usePatchApi<{ status: string }>(commonApiHookOptions);
 
-export default function OrderDetailDialog({ order, open, onOpenChange, onEditClick }: OrderDetailDialogProps) {
   if (!order) return null;
 
   const pickupDateFormatted = order.pickup_date
     ? format(new Date(order.pickup_date), 'yyyy年MM月dd日(E)', { locale: ja })
     : '未定';
+
+  const { label: statusLabel, className: statusClassName } = getOrderItemStatusLabelAndClass(order.status);
+
+  const handlePickedUp = async () => {
+    const result = await patch(`/order/${order.id}/status`, { status: orderItemStatus.PICKED_UP });
+    if (result.success) {
+      onOpenChange(false);
+      onStatusChanged?.();
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -71,17 +81,24 @@ export default function OrderDetailDialog({ order, open, onOpenChange, onEditCli
                   <span className="text-sm font-medium text-gray-700 min-w-[100px]">受取日</span>
                   <span className="text-sm text-gray-900">{pickupDateFormatted}</span>
                 </div>
-                <div className="flex items-start">
+                <div className="flex items-center">
                   <span className="text-sm font-medium text-gray-700 min-w-[100px]">ステータス</span>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    order.status === 'pending'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : order.status === 'picked_up'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {statusLabels[order.status]}
-                  </span>
+                  <div className="w-full flex items-center justify-between">
+                    <span className={`pear-badge ${statusClassName}`}>
+                      {statusLabel}
+                    </span>
+                    {order.status === orderItemStatus.PENDING && (
+                      <Button
+                        type="button"
+                        color="info"
+                        onClick={handlePickedUp}
+                        disabled={patchLoading}
+                        className="ml-2 text-xs"
+                      >
+                        受取完了
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
