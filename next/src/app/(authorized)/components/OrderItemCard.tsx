@@ -27,6 +27,7 @@ export default function OrderItemCard({data, onDetailClick}: OrderItemCardProps)
   } = useSortable({ id: data.id });
 
   const style = {
+    touchAction: 'none',
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : undefined,

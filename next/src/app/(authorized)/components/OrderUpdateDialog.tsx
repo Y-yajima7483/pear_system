@@ -17,7 +17,7 @@ import Button from "@/components/ui/Button";
 import OrderForm, { OrderFormInputs, ItemValueType } from './OrderForm';
 import usePutApi from '@/lib/api/usePutApi';
 import { commonApiHookOptions } from '@/lib/api/commonErrorHandlers';
-import { orderFormSchema } from '@/lib/validation/order';
+import { orderUpdateFormSchema } from '@/lib/validation/order';
 import { OrderDetailData } from '@/types/order';
 
 // APIリクエスト型(注文情報)
@@ -70,11 +70,12 @@ export default function OrderUpdateDialog({
       pickup_date: data.pickup_date ? new Date(data.pickup_date) : '',
       pickup_time: data.pickup_time || '',
       items,
+      status: data.status,
     };
   };
 
   const { control, trigger: triggerValidation, handleSubmit, formState: {errors}, reset, watch, setValue } = useForm<OrderFormInputs>({
-    resolver: yupResolver(orderFormSchema),
+    resolver: yupResolver(orderUpdateFormSchema),
     defaultValues: convertOrderDataToFormValues(orderData),
   });
 
@@ -112,7 +113,8 @@ export default function OrderUpdateDialog({
       notes: data.notes,
       pickup_date: data.pickup_date ? format(data.pickup_date, 'yyyy-MM-dd') : null,
       pickup_time: data.pickup_time ? data.pickup_time : null,
-      items: orderItem
+      items: orderItem,
+      status: data.status,
     });
 
     if(res.success) {
@@ -143,6 +145,7 @@ export default function OrderUpdateDialog({
             watch={watch}
             setValue={setValue}
             fieldArray={fieldArray}
+            isEditMode={true}
           />
         </form>
         <DialogFooter className="sticky bottom-0 z-10 bg-background w-full p-4 border-b">

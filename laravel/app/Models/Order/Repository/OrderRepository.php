@@ -111,6 +111,7 @@ class OrderRepository implements OrderRepositoryInterface
                 'pickup_date' => $orderData['pickup_date'] ?? null,
                 'pickup_time' => $orderData['pickup_time'] ?? null,
                 'notes' => $orderData['notes'] ?? null,
+                'status' => $orderData['status'],
             ]);
 
             // 既存の注文明細を削除

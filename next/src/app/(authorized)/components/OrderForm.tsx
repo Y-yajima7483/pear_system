@@ -11,6 +11,8 @@ import Button from "@/components/ui/Button";
 import { useVarietyOptionStore } from '@/stores/useVarietyOptionStore'
 import { useProductOptionStore } from '@/stores/useProductOptionStore'
 import type { OptionType } from '@/types/index'
+import { orderItemStatusOptions } from '@/lib/utils'
+import type { OrderItemStatusType } from '@/types/order'
 
 // フォーム入力値の型定義
 export interface ItemValueType {
@@ -20,13 +22,14 @@ export interface ItemValueType {
   };
 }
 
-// 注文登録フォーム型
+// 注文フォーム型（共通）
 export interface OrderFormInputs {
   customer_name: string; // お客様名
   notes: string; // 備考
   pickup_date: string | Date; // 空文字列 or Dateオブジェクト
   pickup_time: string;
   items: Array<ItemValueType> // 複数品種の配列
+  status?: OrderItemStatusType; // ステータス（編集時のみ使用、編集時は必須）
 }
 
 // 商品デフォルト値
@@ -39,6 +42,7 @@ interface OrderFormProps {
   watch: UseFormWatch<OrderFormInputs>;
   setValue: UseFormSetValue<OrderFormInputs>;
   fieldArray: UseFieldArrayReturn<OrderFormInputs, 'items', 'id'>;
+  isEditMode?: boolean; // 編集モードかどうか
 }
 
 export default function OrderForm({
@@ -47,7 +51,8 @@ export default function OrderForm({
   trigger,
   watch,
   setValue,
-  fieldArray
+  fieldArray,
+  isEditMode = false
 }: OrderFormProps) {
   const { varietyOptions } = useVarietyOptionStore()
   const { productOptions } = useProductOptionStore()
@@ -145,6 +150,19 @@ export default function OrderForm({
             trigger={trigger}
           />
         </div>
+        {/* ステータス（編集モード時のみ表示） */}
+        {isEditMode && (
+          <div className="mt-6">
+            <SelectBox
+              control={control}
+              name="status"
+              inputLabel="ステータス"
+              option={orderItemStatusOptions}
+              trigger={trigger}
+              errorMessage={errors.status?.message}
+            />
+          </div>
+        )}
       </div>
 
       {/* 品種別注文 */}

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import {
@@ -27,6 +28,7 @@ interface OrderDetailDialogProps {
 }
 
 export default function OrderDetailDialog({ order, open, onOpenChange, onEditClick, onStatusChanged }: OrderDetailDialogProps) {
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const { patch, loading: patchLoading } = usePatchApi<{ status: string }>(commonApiHookOptions);
 
   if (!order) return null;
@@ -45,6 +47,19 @@ export default function OrderDetailDialog({ order, open, onOpenChange, onEditCli
     }
   };
 
+  const handleCancelClick = () => {
+    setCancelConfirmOpen(true);
+  };
+
+  const handleCancelConfirm = async () => {
+    const result = await patch(`/order/${order.id}/status`, { status: orderItemStatus.CANCELED });
+    if (result.success) {
+      setCancelConfirmOpen(false);
+      onOpenChange(false);
+      onStatusChanged?.();
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -53,9 +68,6 @@ export default function OrderDetailDialog({ order, open, onOpenChange, onEditCli
       >
         <DialogHeader className="sticky top-0 z-2 bg-background w-full p-4">
           <DialogTitle>注文詳細</DialogTitle>
-          <DialogDescription>
-            注文ID: {order.id}
-          </DialogDescription>
         </DialogHeader>
 
         <div className="px-4 pb-4 space-y-6">
@@ -130,6 +142,21 @@ export default function OrderDetailDialog({ order, open, onOpenChange, onEditCli
           </div>
         </div>
 
+        {order.status !== orderItemStatus.CANCELED && (
+          <div className="px-4 py-3 border-t">
+            <Button
+              type="button"
+              onClick={handleCancelClick}
+              disabled={patchLoading}
+              color="alert"
+              outline
+              className="text-sm"
+            >
+              この注文をキャンセル
+            </Button>
+          </div>
+        )}
+
         <DialogFooter className="sticky bottom-0 z-10 bg-background w-full p-4 border-t">
           <DialogClose asChild>
             <Button type="button" outline className='w-full'>閉じる</Button>
@@ -141,6 +168,33 @@ export default function OrderDetailDialog({ order, open, onOpenChange, onEditCli
           )}
         </DialogFooter>
       </DialogContent>
+
+      {/* キャンセル確認ダイアログ */}
+      <Dialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>注文キャンセルの確認</DialogTitle>
+            <DialogDescription>
+              この注文をキャンセルしてもよろしいですか？
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" outline>
+                戻る
+              </Button>
+            </DialogClose>
+            <Button
+              type="button"
+              color="alert"
+              onClick={handleCancelConfirm}
+              disabled={patchLoading}
+            >
+              キャンセルする
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

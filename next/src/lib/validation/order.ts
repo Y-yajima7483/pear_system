@@ -1,5 +1,6 @@
 import * as yup from 'yup';
 import type { AnyObjectSchema } from 'yup';
+import { orderItemStatus } from '@/types/order';
 
 /**
  * 注文フォームのバリデーションスキーマ
@@ -78,4 +79,17 @@ export const orderFormSchema:AnyObjectSchema = yup.object({
         });
       });
     })
+});
+
+// ステータスの有効な値
+const validStatuses = Object.values(orderItemStatus);
+
+/**
+ * 注文編集フォームのバリデーションスキーマ（status必須）
+ */
+export const orderUpdateFormSchema: AnyObjectSchema = orderFormSchema.shape({
+  status: yup
+    .string()
+    .required('ステータスは必須です')
+    .oneOf(validStatuses, 'ステータスの値が不正です'),
 });

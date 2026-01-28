@@ -1006,7 +1006,7 @@ input[type="time"]::-webkit-clear-button {
 
 /* オーダーカード - キャンセル */
 .order-card.canceled {
-  background: linear-gradient(135deg, var(--pear-accent) 0%, #f0f5e8 100%);
+  background: rgba(0,0,0, 0.1);
   border: 1px solid var(--border-default);
 }
 
