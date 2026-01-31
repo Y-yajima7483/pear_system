@@ -356,7 +356,7 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
   const convertToOrderDetailData = (order: GetOrderListApiResponseContent | GetOrderListApiResponseContent<null>): OrderDetailData | null => {
     if (!order) return null;
 
-    const itemsByVariety: { [key: number]: { variety_id: number; variety_name: string; products: Array<{ product_id: number; product_name: string; quantity: number }> } } = {};
+    const itemsByVariety: { [key: number]: { variety_id: number; variety_name: string; products: Array<{ id: number; product_id: number; product_name: string; quantity: number; is_prepared: boolean }> } } = {};
 
     order.items.forEach((item) => {
       const varietyKey = item.variety_id;
@@ -370,9 +370,11 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
       }
 
       itemsByVariety[varietyKey].products.push({
+        id: item.id,
         product_id: item.product_id,
         product_name: item.item,
         quantity: item.quantity,
+        is_prepared: item.is_prepared,
       });
     });
 

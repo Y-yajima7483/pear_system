@@ -2,7 +2,7 @@
 
 namespace App\Services\Variety;
 
-use App\Http\Response\Common\OptionResponse;
+use App\Http\Resources\Common\OptionCommonResource;
 use App\Models\Variety\Repository\VarietyRepositoryInterface;
 use App\Services\AbstractService;
 
@@ -10,7 +10,7 @@ class GetVarietyOptionService extends AbstractService
 {
     public function __construct(
         private readonly VarietyRepositoryInterface $variety,
-        private readonly OptionResponse $response
+        private readonly OptionCommonResource $response
     ) {}
 
     public function execute(array $data): array

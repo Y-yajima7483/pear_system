@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Http\Response;
+namespace App\Http\Resources;
 
-abstract class AbstractResponse
+abstract class AbstractResource
 {
     abstract public function execute(array $data): array;
 }

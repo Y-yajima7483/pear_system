@@ -5,18 +5,20 @@ import { ChevronDown, X } from "lucide-react";
 import type { FieldValues, UseFormTrigger, FieldPath } from "react-hook-form";
 import { OptionType } from "@/types/index";
 
-interface Props<ESFieldValues extends FieldValues> {
+type ValueType = string | number;
+
+interface Props<ESFieldValues extends FieldValues, T extends ValueType = string> {
   name: FieldPath<ESFieldValues>;
   inputLabel: string;
   errorMessage?: string;
-  option: Array<OptionType>;
-  onChange?: (value: string | null) => void;
+  option: Array<OptionType<T>>;
+  onChange?: (value: T | null) => void;
   trigger?: UseFormTrigger<ESFieldValues>;
-  value?: string | null;
+  value?: T | null;
   disabledRemove?: boolean;
 }
 
-export default function SelectBoxBase<ESFieldValues extends FieldValues>({
+export default function SelectBoxBase<ESFieldValues extends FieldValues, T extends ValueType = string>({
   name,
   inputLabel,
   option,
@@ -25,8 +27,8 @@ export default function SelectBoxBase<ESFieldValues extends FieldValues>({
   trigger,
   value: propValue,
   disabledRemove = false,
-}: Props<ESFieldValues>) {
-  const [value, setValue] = useState<string | null>(propValue ?? null);
+}: Props<ESFieldValues, T>) {
+  const [value, setValue] = useState<T | null>(propValue ?? null);
   const [isOpen, setIsOpen] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
 
@@ -53,7 +55,7 @@ export default function SelectBoxBase<ESFieldValues extends FieldValues>({
     };
   }, []);
 
-  const handleSelect = (selectedValue: string) => {
+  const handleSelect = (selectedValue: T) => {
     setValue(selectedValue);
     onChange?.(selectedValue);
     trigger?.(name);
@@ -122,7 +124,7 @@ export default function SelectBoxBase<ESFieldValues extends FieldValues>({
         <div className="select-dropdown" role="listbox">
           {option.map((item) => (
             <div
-              key={item.value}
+              key={String(item.value)}
               className="select-option"
               role="option"
               aria-selected={item.value === value}

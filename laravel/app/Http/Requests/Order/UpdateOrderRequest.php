@@ -24,7 +24,7 @@ class UpdateOrderRequest extends FormRequest
             'notes' => ['nullable', 'string', 'max:300'],
             'pickup_date' => ['nullable', 'date_format:Y-m-d'],
             'pickup_time' => ['nullable', 'regex:/^(\d{2}):(\d{2})$/'],
-            'status' => ['required', 'string', 'in:pending,picked_up,canceled'],
+            'status' => ['required', 'integer', 'in:1,2,3'],
             // 注文商品
             'items' => ['required', 'array', 'min:1'],
             'items.*.variety_id' => ['required', 'integer', 'exists:varieties,id'],

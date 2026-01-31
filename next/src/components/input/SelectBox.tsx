@@ -2,23 +2,25 @@ import { Controller, type FieldValues, type Control, type UseFormTrigger, type F
 import type { OptionType } from "@/types/index";
 import SelectBoxBase from "./SelectBoxBase";
 
-interface Props<ESFieldValues extends FieldValues> {
+type ValueType = string | number;
+
+interface Props<ESFieldValues extends FieldValues, T extends ValueType = string> {
 	control: Control<ESFieldValues>;
 	name: FieldPath<ESFieldValues>;
 	inputLabel: string;
-	option: Array<OptionType>;
+	option: Array<OptionType<T>>;
 	errorMessage?: string;
 	trigger: UseFormTrigger<ESFieldValues>;
 }
 
-export default function SelectBox<ESFieldValues extends FieldValues>({
+export default function SelectBox<ESFieldValues extends FieldValues, T extends ValueType = string>({
 	name,
 	inputLabel,
 	option,
 	control,
 	errorMessage,
 	trigger,
-}: Props<ESFieldValues>) {
+}: Props<ESFieldValues, T>) {
 	return (
 		<Controller
 			name={name}

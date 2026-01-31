@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Response\Common;
+namespace App\Http\Resources\Product;
 
-use App\Http\Response\AbstractResponse;
+use App\Http\Resources\AbstractResource;
 
-class OptionResponse extends AbstractResponse
+class OptionProductResource extends AbstractResource
 {
     public function execute(array $data): array
     {
@@ -12,6 +12,7 @@ class OptionResponse extends AbstractResponse
             return [
                 'value' => $item['id'],
                 'label' => $item['name'],
+                'variety' => $item['variety_id'],
             ];
         }, $data);
     }

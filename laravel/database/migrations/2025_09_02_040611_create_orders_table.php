@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('customer_name', 191)->comment('お客様名');
             $table->date('pickup_date')->nullable()->comment('受取日');
-            $table->enum('status', ['pending', 'picked_up', 'canceled'])->default('pending');
+            $table->unsignedTinyInteger('status')->default(1)->comment('ステータス: 1=pending, 2=picked_up, 3=canceled');
             $table->text('notes')->nullable()->comment('備考');
             $table->foreignId('user_id')
                 ->nullable()
@@ -22,6 +22,10 @@ return new class extends Migration
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
             // インデックス
             $table->index('pickup_date', 'idx_orders_pickup_date');
+            $table->time('pickup_time')
+                ->nullable()
+                ->comment('受取時間');
+            $table->index('user_id', 'idx_orders_user');
             $table->index('status', 'idx_orders_status');
         });
     }

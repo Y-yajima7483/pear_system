@@ -89,7 +89,7 @@ const validStatuses = Object.values(orderItemStatus);
  */
 export const orderUpdateFormSchema: AnyObjectSchema = orderFormSchema.shape({
   status: yup
-    .string()
+    .number()
     .required('ステータスは必須です')
     .oneOf(validStatuses, 'ステータスの値が不正です'),
 });

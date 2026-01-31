@@ -18,14 +18,14 @@ class Order extends Model
     /**
      * ステータス定数
      */
-    const STATUS_PENDING = 'pending';
-    const STATUS_PICKED_UP = 'picked_up';
-    const STATUS_CANCELED = 'canceled';
+    const STATUS_PENDING = 1;
+    const STATUS_PICKED_UP = 2;
+    const STATUS_CANCELED = 3;
 
     const STATUSES = [
-        self::STATUS_PENDING,
-        self::STATUS_PICKED_UP,
-        self::STATUS_CANCELED,
+        self::STATUS_PENDING => 'pending',
+        self::STATUS_PICKED_UP => 'picked_up',
+        self::STATUS_CANCELED => 'canceled',
     ];
 
     protected $table = 'orders';
@@ -47,7 +47,7 @@ class Order extends Model
      */
     protected $casts = [
         'pickup_date' => 'date',
-        'status' => 'string',
+        'status' => 'integer',
     ];
 
     /**
@@ -125,20 +125,28 @@ class Order extends Model
      */
     public function markPickedUp(): bool
     {
-        return $this->update(['status' => 'picked_up']);
+        return $this->update(['status' => self::STATUS_PICKED_UP]);
     }
 
     public function cancel(): bool
     {
-        return $this->update(['status' => 'canceled']);
+        return $this->update(['status' => self::STATUS_CANCELED]);
     }
 
     /**
      * クエリスコープ
      */
-    public function scopeStatus(Builder $query, string $status): Builder
+    public function scopeStatus(Builder $query, int $status): Builder
     {
         return $query->where('status', $status);
+    }
+
+    /**
+     * ステータス名を取得
+     */
+    public function getStatusNameAttribute(): string
+    {
+        return self::STATUSES[$this->status] ?? 'unknown';
     }
 
     public function scopePickupOn(Builder $query, $date): Builder

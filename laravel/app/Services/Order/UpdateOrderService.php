@@ -2,7 +2,7 @@
 
 namespace App\Services\Order;
 
-use App\Http\Response\Order\OrderUpdateResponse;
+use App\Http\Resources\Order\UpdateOrderResource;
 use App\Models\Order\Repository\OrderRepositoryInterface;
 use App\Services\AbstractService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -11,7 +11,7 @@ class UpdateOrderService extends AbstractService
 {
     public function __construct(
         private readonly OrderRepositoryInterface $orderRepository,
-        private readonly OrderUpdateResponse $response
+        private readonly UpdateOrderResource $response
     ) {}
 
     /**

@@ -4,19 +4,30 @@ import React from 'react';
 import { format, addDays, subDays } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
+type RangeMode = 'week' | 'twodays';
+
 interface DateNavigationProps {
   currentDate: Date;
   onDateChange: (date: Date) => void;
   actionButton?: React.ReactNode;
+  rangeMode?: RangeMode;
 }
 
-export default function DateNavigation({ currentDate, onDateChange, actionButton }: DateNavigationProps) {
+export default function DateNavigation({
+  currentDate,
+  onDateChange,
+  actionButton,
+  rangeMode = 'week'
+}: DateNavigationProps) {
+  const daysToMove = rangeMode === 'week' ? 7 : 2;
+  const endOffset = rangeMode === 'week' ? 6 : 1;
+
   const handlePrevious = () => {
-    onDateChange(subDays(currentDate, 7));
+    onDateChange(subDays(currentDate, daysToMove));
   };
 
   const handleNext = () => {
-    onDateChange(addDays(currentDate, 7));
+    onDateChange(addDays(currentDate, daysToMove));
   };
 
   const handleToday = () => {
@@ -24,6 +35,16 @@ export default function DateNavigation({ currentDate, onDateChange, actionButton
   };
 
   const isToday = format(currentDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+
+  const formatDateRange = () => {
+    const startDate = currentDate;
+    const endDate = addDays(currentDate, endOffset);
+
+    if (rangeMode === 'twodays') {
+      return `${format(startDate, 'M月d日（E）', { locale: ja })} 〜 ${format(endDate, 'M月d日（E）', { locale: ja })}`;
+    }
+    return `${format(startDate, 'yyyy年M月d日', { locale: ja })} 〜 ${format(endDate, 'M月d日', { locale: ja })}`;
+  };
 
   return (
     <div className="flex items-center justify-between w-full">
@@ -64,7 +85,7 @@ export default function DateNavigation({ currentDate, onDateChange, actionButton
       <div className="flex items-center gap-4">
         {/* 日付表示 */}
         <h2 className="date-nav-title">
-          {format(currentDate, 'yyyy年M月d日', { locale: ja })} 〜 {format(addDays(currentDate, 6), 'M月d日', { locale: ja })}
+          {formatDateRange()}
         </h2>
 
         {/* アクションボタン */}

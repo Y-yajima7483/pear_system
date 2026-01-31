@@ -23,6 +23,7 @@ class OrderItem extends Model
         'order_id',
         'product_id',
         'quantity',
+        'is_prepared',
     ];
 
     /**
@@ -30,6 +31,7 @@ class OrderItem extends Model
      */
     protected $casts = [
         'quantity' => 'integer',
+        'is_prepared' => 'boolean',
     ];
 
     /**

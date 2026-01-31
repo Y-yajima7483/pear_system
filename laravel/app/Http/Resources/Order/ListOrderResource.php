@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Response\Order;
+namespace App\Http\Resources\Order;
 
-use App\Http\Response\AbstractResponse;
+use App\Http\Resources\AbstractResource;
 
-class OrderListResponse extends AbstractResponse
+class ListOrderResource extends AbstractResource
 {
     /**
      * 注文一覧のレスポンスデータを整形
@@ -24,14 +24,14 @@ class OrderListResponse extends AbstractResponse
             $dateKey = $startDate->copy()->addDays($i)->format('Y-m-d');
             $result[$dateKey] = [];
         }
-        
+
         // 注文データを日付ごとに振り分け
         $unreservedData = [];
 
         foreach ($data as $order) {
             if (! empty($order['pickup_date'])) {
                 $dateKey = $order['pickup_date'];
-                
+
                 // 表示期間内の日付であれば追加
                 if (isset($result[$dateKey])) {
                     $result[$dateKey][] = $order;

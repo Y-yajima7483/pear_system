@@ -33,7 +33,15 @@ interface OrderRepositoryInterface
      * 注文のステータスを更新する
      *
      * @param  int  $orderId  注文ID
-     * @param  string  $status  変更後のステータス
+     * @param  int  $status  変更後のステータス
      */
-    public function updateOrderStatus(int $orderId, string $status): Order;
+    public function updateOrderStatus(int $orderId, int $status): Order;
+
+    /**
+     * 準備ボード情報を取得する
+     *
+     * @param  string  $targetDate  対象日付 (Y-m-d形式)
+     * @return array 対象日付とその翌日の注文データ
+     */
+    public function getPrepBoard(string $targetDate): array;
 }

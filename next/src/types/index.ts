@@ -1,14 +1,11 @@
 // Selectオプションの共通型
-export type OptionType = {
+export type OptionType<T = string> = {
 	label: string;
-	value: string;
+	value: T;
 };
 
 // Selectオプション型（valueがnumber）
-export type ApiOptionType = {
-	label: string;
-	value: number;
-};
+export type ApiOptionType = OptionType<number>;
 // 商品用Selectオプション型
 export type ProductApiOptionType = {
 	variety: number;

@@ -7,6 +7,8 @@ use App\Http\Controllers\Order\RegisterOrderController;
 use App\Http\Controllers\Order\UpdateOrderController;
 use App\Http\Controllers\Order\UpdateOrderPickupDateController;
 use App\Http\Controllers\Order\UpdateOrderStatusController;
+use App\Http\Controllers\PrepBoard\GetPrepBoardController;
+use App\Http\Controllers\PrepBoard\UpdateOrderItemPreparedController;
 use App\Http\Controllers\Variety\GetVarietyOpionController;
 use App\Http\Controllers\Product\GetProductOptionController;
 use App\Http\Controllers\Auth\LoginController;
@@ -47,6 +49,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/order/{orderId}/pickup-date', UpdateOrderPickupDateController::class)->name('order.update.pickup-date');
     // 店頭受け取り注文ステータス変更API
     Route::patch('/order/{orderId}/status', UpdateOrderStatusController::class)->name('order.update.status');
+    // 準備ボード情報取得API
+    Route::get('/prep-board', GetPrepBoardController::class)->name('prep-board.list');
+    // 注文アイテム準備状態更新API
+    Route::patch('/order-item/{orderId}/{productId}/prepared', UpdateOrderItemPreparedController::class)->name('order-item.update.prepared');
     /* selectBox用API */
     // 品種一覧取得API
     Route::get('/variety_option', GetVarietyOpionController::class)->name('variety.option');

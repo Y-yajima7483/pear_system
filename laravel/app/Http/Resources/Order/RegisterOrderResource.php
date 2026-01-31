@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Response\Order;
+namespace App\Http\Resources\Order;
 
-use App\Http\Response\AbstractResponse;
+use App\Http\Resources\AbstractResource;
 use App\Models\Order\Order;
 
-class OrderRegisterResponse extends AbstractResponse
+class RegisterOrderResource extends AbstractResource
 {
     /**
      * 注文登録のレスポンスデータを整形

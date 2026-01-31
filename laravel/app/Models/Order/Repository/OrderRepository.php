@@ -49,11 +49,13 @@ class OrderRepository implements OrderRepositoryInterface
                 'status' => $order->status,
                 'items' => $order->orderItems->map(function ($item) {
                     return [
+                        'id' => $item->id,
                         'variety_id' => $item->product->variety->id ?? null,
                         'variety' => $item->product->variety->name ?? '',
                         'product_id' => $item->product->id ?? null,
                         'item' => $item->product->name ?? '',
                         'quantity' => $item->quantity,
+                        'is_prepared' => $item->is_prepared,
                     ];
                 })->toArray(),
             ];
@@ -75,7 +77,7 @@ class OrderRepository implements OrderRepositoryInterface
                 'pickup_date' => $orderData['pickup_date'] ?? null,
                 'pickup_time' => $orderData['pickup_time'] ?? null,
                 'notes' => $orderData['notes'] ?? null,
-                'status' => 'pending',
+                'status' => Order::STATUS_PENDING,
             ]);
 
             // 注文明細を作成
@@ -136,13 +138,61 @@ class OrderRepository implements OrderRepositoryInterface
      * 注文のステータスを更新する
      *
      * @param  int  $orderId  注文ID
-     * @param  string  $status  変更後のステータス
+     * @param  int  $status  変更後のステータス
      */
-    public function updateOrderStatus(int $orderId, string $status): Order
+    public function updateOrderStatus(int $orderId, int $status): Order
     {
         $order = Order::findOrFail($orderId);
         $order->update(['status' => $status]);
 
         return $order;
+    }
+
+    /**
+     * 準備ボード情報を取得する
+     *
+     * @param  string  $targetDate  対象日付 (Y-m-d形式)
+     * @return array 対象日付とその翌日の注文データ
+     */
+    public function getPrepBoard(string $targetDate): array
+    {
+        $query = Order::query();
+
+        // target_dateとその翌日の2日分を取得
+        $date = Carbon::parse($targetDate);
+        $startDate = $date->copy();
+        $endDate = $date->copy()->addDay();
+
+        $query->whereBetween('pickup_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]);
+
+        // キャンセルされていない注文のみ取得
+        $query->where('status', '!=', Order::STATUS_CANCELED);
+
+        // 必要なリレーションをEager Loading
+        $query->with(['orderItems.product.variety']);
+
+        // pickup_date、customer_nameの順でソート
+        $query->orderBy('pickup_date', 'ASC')
+              ->orderBy('customer_name', 'ASC');
+
+        return $query->get()->map(function ($order) {
+            return [
+                'id' => $order->id,
+                'customer_name' => $order->customer_name,
+                'pickup_date' => $order->pickup_date,
+                'status' => $order->status,
+                'items' => $order->orderItems->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'product_id' => $item->product->id ?? null,
+                        'product_name' => $item->product->name ?? '',
+                        'variety_id' => $item->product->variety->id ?? null,
+                        'variety_name' => $item->product->variety->name ?? '',
+                        'quantity' => $item->quantity,
+                        'is_prepared' => $item->is_prepared,
+                    ];
+                })->toArray(),
+            ];
+        })->toArray();
     }
 }

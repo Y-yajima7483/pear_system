@@ -2,7 +2,7 @@
 
 namespace App\Services\Order;
 
-use App\Http\Response\Order\OrderListResponse;
+use App\Http\Resources\Order\ListOrderResource;
 use App\Models\Order\Repository\OrderRepositoryInterface;
 use App\Services\AbstractService;
 
@@ -10,7 +10,7 @@ class GetOrderListService extends AbstractService
 {
     public function __construct(
         private readonly OrderRepositoryInterface $orderRepository,
-        private readonly OrderListResponse $response
+        private readonly ListOrderResource $response
     ) {}
 
     /**

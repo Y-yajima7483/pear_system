@@ -29,7 +29,7 @@ class OrderSeeder extends Seeder
         $order1 = Order::create([
             'customer_name' => '山田 太郎',
             'pickup_date' => $now->format('Y-m-d'),
-            'status' => 'pending',
+            'status' => Order::STATUS_PENDING,
             'notes' => '午後に受け取り希望',
         ]);
 
@@ -49,7 +49,7 @@ class OrderSeeder extends Seeder
         $order2 = Order::create([
             'customer_name' => '鈴木 花子',
             'pickup_date' => $now->copy()->addDay()->format('Y-m-d'),
-            'status' => 'pending',
+            'status' => Order::STATUS_PENDING,
         ]);
 
         OrderItem::create([
@@ -62,7 +62,7 @@ class OrderSeeder extends Seeder
         $order3 = Order::create([
             'customer_name' => '佐藤 次郎',
             'pickup_date' => $now->copy()->addWeek()->format('Y-m-d'),
-            'status' => 'pending',
+            'status' => Order::STATUS_PENDING,
         ]);
 
         OrderItem::create([
@@ -75,7 +75,7 @@ class OrderSeeder extends Seeder
         $order4 = Order::create([
             'customer_name' => '田中 美咲',
             'pickup_date' => $now->copy()->addWeeks(2)->format('Y-m-d'),
-            'status' => 'pending',
+            'status' => Order::STATUS_PENDING,
             'notes' => '贈答用包装希望',
         ]);
 
@@ -95,7 +95,7 @@ class OrderSeeder extends Seeder
         $order5 = Order::create([
             'customer_name' => '高橋 健一',
             'pickup_date' => $now->copy()->subWeeks(3)->format('Y-m-d'),
-            'status' => 'picked_up',
+            'status' => Order::STATUS_PENDING,
         ]);
 
         OrderItem::create([

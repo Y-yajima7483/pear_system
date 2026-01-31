@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('product_id')
                 ->constrained('products');
             $table->unsignedInteger('quantity')->comment('数量');
+            $table->boolean('is_prepared')->default(false)->comment('準備済フラグ');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
             // インデックス

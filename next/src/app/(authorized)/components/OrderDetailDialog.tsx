@@ -29,7 +29,7 @@ interface OrderDetailDialogProps {
 
 export default function OrderDetailDialog({ order, open, onOpenChange, onEditClick, onStatusChanged }: OrderDetailDialogProps) {
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
-  const { patch, loading: patchLoading } = usePatchApi<{ status: string }>(commonApiHookOptions);
+  const { patch, loading: patchLoading } = usePatchApi<{ status: number }>(commonApiHookOptions);
 
   if (!order) return null;
 

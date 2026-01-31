@@ -21,7 +21,7 @@ class UpdateOrderStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', 'string', Rule::in(Order::STATUSES)],
+            'status' => ['required', 'integer', Rule::in(array_keys(Order::STATUSES))],
         ];
     }
 
@@ -29,7 +29,8 @@ class UpdateOrderStatusRequest extends FormRequest
     {
         return [
             'status.required' => 'ステータスは必須です。',
-            'status.in' => 'ステータスの値が不正です。（pending, picked_up, canceled のいずれかを指定してください）',
+            'status.integer' => 'ステータスは数値で指定してください。',
+            'status.in' => 'ステータスの値が不正です。（1=pending, 2=picked_up, 3=canceled のいずれかを指定してください）',
         ];
     }
 

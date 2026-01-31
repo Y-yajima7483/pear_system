@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import PageHeader from "@/components/ui/page-header";
 import OrderRegisterDialog from "../components/OrderRegisterDialog";
 import OrderItemFortnightCalendar from "@/app/(authorized)/components/OrderItemFortnightCalendar";
 import DateNavigation from "../components/DateNavigation";
@@ -19,28 +18,18 @@ export default function PickupReservationsPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden page-bg-gradient">
-      {/* Background decoration */}
-      <div className="bg-decoration-top-right" />
-      <div className="bg-decoration-bottom-left" />
+    <div className="px-6 py-6 md:px-8">
+      {/* Week Navigation */}
+      <div className="mb-5">
+        <DateNavigation
+          currentDate={baseDate}
+          onDateChange={handleDateChange}
+          actionButton={<OrderRegisterDialog onOrderCreated={handleOrderCreated} />}
+        />
+      </div>
 
-      {/* Header */}
-      <PageHeader title="PEAR System" />
-
-      {/* Main Content */}
-      <main className="px-8 py-6">
-        {/* Week Navigation */}
-        <div className="mb-5">
-          <DateNavigation
-            currentDate={baseDate}
-            onDateChange={handleDateChange}
-            actionButton={<OrderRegisterDialog onOrderCreated={handleOrderCreated} />}
-          />
-        </div>
-
-        {/* Calendar */}
-        <OrderItemFortnightCalendar refreshKey={refreshKey} baseDate={baseDate} />
-      </main>
+      {/* Calendar */}
+      <OrderItemFortnightCalendar refreshKey={refreshKey} baseDate={baseDate} />
     </div>
   )
 }
