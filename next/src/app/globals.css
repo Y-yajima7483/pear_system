@@ -1449,14 +1449,14 @@ input[type="time"]::-webkit-clear-button {
 }
 
 .prep-board-matrix-table thead th {
-  @apply text-xs font-semibold whitespace-nowrap;
+  @apply text-lg font-semibold whitespace-nowrap;
   background: var(--gray-50);
   color: var(--text-secondary);
 }
 
 /* 品種グループヘッダー */
 .prep-board-matrix-table thead th.variety-group {
-  @apply text-sm font-semibold;
+  @apply text-lg font-semibold;
   padding: 12px 10px;
   background: var(--pear-card-bg);
   color: var(--pear-primary-dark);
@@ -1465,7 +1465,7 @@ input[type="time"]::-webkit-clear-button {
 
 /* 商品タイプヘッダー */
 .prep-board-matrix-table thead th.product-type {
-  @apply text-xs;
+  @apply text-lg;
   padding: 8px 6px;
   background: var(--gray-100);
   color: var(--text-muted);
@@ -1473,7 +1473,7 @@ input[type="time"]::-webkit-clear-button {
 
 /* 顧客名セル */
 .prep-board-matrix-table .customer-cell {
-  @apply font-medium text-left text-sm whitespace-nowrap;
+  @apply font-medium text-left text-xl whitespace-nowrap;
   position: sticky;
   left: 0;
   background: var(--bg);
@@ -1497,11 +1497,25 @@ input[type="time"]::-webkit-clear-button {
 
 /* ステータスバッジ */
 .prep-board-status-badge {
-  @apply inline-flex items-center justify-center text-sm font-semibold cursor-pointer;
-  padding: 6px 12px;
-  border-radius: 6px;
+  @apply inline-flex items-center justify-center text-lg font-semibold cursor-pointer;
+  padding: 8px 14px;
+  border-radius: 8px;
   transition: all 0.15s ease;
-  min-width: 40px;
+  min-width: 44px;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* タブレット向けにさらに大きく */
+@media (min-width: 768px) and (pointer: coarse) {
+  .prep-board-status-badge {
+    padding: 10px 18px;
+    min-width: 52px;
+    min-height: 52px;
+    font-size: 1.25rem;
+    border-radius: 10px;
+  }
 }
 
 /* 未準備（警告色 - 黄色系） */
@@ -1521,6 +1535,10 @@ input[type="time"]::-webkit-clear-button {
 .prep-board-status-badge:hover {
   transform: scale(1.05);
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.prep-board-status-badge:active {
+  transform: scale(0.95);
 }
 
 /* 空セル */
@@ -1556,12 +1574,12 @@ input[type="time"]::-webkit-clear-button {
 
 /* 小計行 */
 .prep-board-subtotal-row td {
-  @apply text-sm font-semibold;
+  @apply text-lg font-semibold;
   padding: 10px 8px !important;
 }
 
 .prep-board-subtotal-row .customer-cell {
-  @apply text-xs font-semibold;
+  @apply text-lg font-semibold;
   padding-left: 12px !important;
 }
 

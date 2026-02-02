@@ -84,6 +84,12 @@ export default function PrepBoardMatrix({
   // 注文が受取済みかどうかを判定
   const isOrderCompleted = (status: number) => status === orderItemStatus.PICKED_UP;
 
+  // すべての商品が準備済みかどうかを判定
+  const isAllItemsPrepared = (order: PrepBoardOrder) => {
+    const items = Object.values(order.items);
+    return items.length > 0 && items.every(item => item.is_prepared);
+  };
+
   return (
     <section className="prep-board-day-section">
       <div className="prep-board-day-header">
@@ -125,7 +131,11 @@ export default function PrepBoardMatrix({
                 key={order.id}
                 className={isOrderCompleted(order.status) ? 'prep-board-customer-row-completed' : ''}
               >
-                <td className="customer-cell">{order.customer_name}</td>
+                <td className="customer-cell">
+                  <span className={isAllItemsPrepared(order) ? 'line-through text-gray-400' : ''}>
+                    {order.customer_name}
+                  </span>
+                </td>
                 {productColumns.map(col => {
                   const item = order.items[String(col.product_id)];
                   if (!item) {
@@ -137,12 +147,12 @@ export default function PrepBoardMatrix({
                   }
                   return (
                     <td key={col.product_id} className="prep-board-status-cell">
-                      <span
+                      <button
                         className={`prep-board-status-badge ${item.is_prepared ? 'ready' : 'pending'}`}
                         onClick={() => handleCellClick(order.id, col.product_id, item.is_prepared)}
                       >
                         {item.quantity}
-                      </span>
+                      </button>
                     </td>
                   );
                 })}
@@ -152,7 +162,7 @@ export default function PrepBoardMatrix({
             {/* 小計行 - 未準備 */}
             <tr className="prep-board-subtotal-row pending prep-board-subtotal-section-start">
               <td className="customer-cell">
-                <span className="prep-board-subtotal-icon"></span>
+                <span>未準備</span>
               </td>
               {productColumns.map(col => (
                 <td
@@ -167,7 +177,7 @@ export default function PrepBoardMatrix({
             {/* 小計行 - 準備済 */}
             <tr className="prep-board-subtotal-row ready">
               <td className="customer-cell">
-                <span className="prep-board-subtotal-icon"></span>
+                <span>準備済</span>
               </td>
               {productColumns.map(col => (
                 <td

@@ -114,7 +114,7 @@ export default function PrepBoardPage() {
   }
 
   return (
-    <div className="min-h-screen pear-bg">
+    <>
       {/* ナビゲーションバー */}
       <nav className="prep-board-nav-bar">
         <DateNavigation
@@ -124,15 +124,8 @@ export default function PrepBoardPage() {
           actionButton={<OrderRegisterDialog onOrderCreated={handleOrderCreated} />}
         />
       </nav>
-
-      {/* メインコンテンツ */}
-      <main className="prep-board-main-content">
-        {getLoading && !isInitialLoading && (
-          <div className="flex justify-center py-4">
-            <div className="pear-spinner"></div>
-          </div>
-        )}
-
+      <div className="prep-board-main-content">
+        <div className={`transition-opacity duration-200 ${getLoading && !isInitialLoading ? 'opacity-50 pointer-events-none' : ''}`}>
         {data && data.row_headers.length > 0 ? (
           <>
             {/* 1日目のマトリックス */}
@@ -156,10 +149,11 @@ export default function PrepBoardPage() {
             <p>この期間の注文はありません</p>
           </div>
         )}
-      </main>
+        </div>
+      </div>
 
       {/* フッターステータスバー */}
-      <footer className="prep-board-footer-bar">
+      <div className="prep-board-footer-bar">
         <div className="prep-board-footer-item">
           <div className="prep-board-footer-icon orders">📦</div>
           <div>
@@ -181,7 +175,7 @@ export default function PrepBoardPage() {
             <div className="prep-board-footer-value success">{statistics.completedOrders}件</div>
           </div>
         </div>
-      </footer>
-    </div>
+      </div>
+    </>
   );
 }

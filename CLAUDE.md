@@ -88,6 +88,7 @@ docker-compose exec next yarn lint     # Run ESLint
 │   │   ├── lib/          # Utilities and API helpers
 │   │   ├── stores/       # Zustand state management
 │   │   └── types/        # TypeScript type definitions
+│   │   └── config/        # config
 │   └── public/            # Static assets
 ├── laravel/               # Laravel backend application
 │   ├── app/
