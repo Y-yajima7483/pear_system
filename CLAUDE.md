@@ -190,3 +190,13 @@ Key variables in `.env`:
 2. **API Development**: Test Laravel APIs at `http://localhost:8080/api/*`
 3. **Database Access**: MySQL available at `localhost:3306` when `DB_PORT` is set
 4. **Logs**: Use `docker-compose logs -f [service]` to tail logs during development
+
+## Claude Code Operational Rules
+
+- When seeking user decisions, always use the `AskUserQuestion` tool
+- Installing modules or packages is prohibited for security reasons
+- Always review the plan file after creating it
+- Use Sub agents as needed for reviews and web search information gathering
+- Sub agent model selection:
+  - **Simple tasks** (search, file exploration, pattern checking, light research) → use `model: "sonnet"` (Sonnet 4.6)
+  - **Complex/advanced tasks** (architecture design, complex code analysis, implementation planning, advanced debugging) → use `model: "opus"` (Opus 4.6)
