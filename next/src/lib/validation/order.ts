@@ -52,14 +52,10 @@ export const orderFormSchema:AnyObjectSchema = yup.object({
           const shape: any = {};
           if (value && typeof value === 'object') {
             Object.keys(value).forEach((productId) => {
-              shape[productId] = yup.string()
+              shape[productId] = yup.number()
                 .required('数量を入力してください')
-                .matches(/^\d+$/, '0以上の整数を入力してください')
-                .test('non-negative', '0以上の整数を入力してください', (val) => {
-                  if (!val) return true;
-                  const num = parseInt(val);
-                  return !isNaN(num) && num >= 0;
-                });
+                .integer('0以上の整数を入力してください')
+                .min(0, '0以上の整数を入力してください');
             });
           }
           return yup.object().shape(shape);
@@ -74,8 +70,7 @@ export const orderFormSchema:AnyObjectSchema = yup.object({
       return items.some(item => {
         if (!item.variety_id || !item.product) return false;
         return Object.values(item.product).some(quantity => {
-          const num = parseInt(quantity as string);
-          return !isNaN(num) && num > 0;
+          return typeof quantity === 'number' && quantity > 0;
         });
       });
     })

@@ -1,7 +1,6 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Order\GetOrderListController;
 use App\Http\Controllers\Order\RegisterOrderController;
 use App\Http\Controllers\Order\UpdateOrderController;
@@ -9,9 +8,13 @@ use App\Http\Controllers\Order\UpdateOrderPickupDateController;
 use App\Http\Controllers\Order\UpdateOrderStatusController;
 use App\Http\Controllers\PrepBoard\GetPrepBoardController;
 use App\Http\Controllers\PrepBoard\UpdateOrderItemPreparedController;
-use App\Http\Controllers\Variety\GetVarietyOpionController;
 use App\Http\Controllers\Product\GetProductOptionController;
-use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Grade\GetGradeOptionController;
+use App\Http\Controllers\ShipmentRecord\GetShipmentRecordListController;
+use App\Http\Controllers\ShipmentType\GetShipmentTypeOptionController;
+use App\Http\Controllers\Variety\GetVarietyOpionController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -58,4 +61,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/variety_option', GetVarietyOpionController::class)->name('variety.option');
     // 商品一覧取得API
     Route::get('/product_option', GetProductOptionController::class)->name('product.option');
+    // 出荷タイプ一覧取得API
+    Route::get('/shipment_type_option', GetShipmentTypeOptionController::class)->name('shipment-type.option');
+    // 等級一覧取得API
+    Route::get('/grade_option', GetGradeOptionController::class)->name('grade.option');
+    /* 出荷記録API */
+    // 出荷記録一覧取得API
+    Route::get('/shipment-record', GetShipmentRecordListController::class)->name('shipment-record.list');
 });

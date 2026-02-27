@@ -60,10 +60,10 @@ export default function OrderRegisterDialog({ onOrderCreated }: OrderRegisterDia
     let orderItem:Array<OrderItemRequestType> = [];
     data.items.forEach(variety => {
       const items = Object.entries(variety.product)
-        .filter(([_, quantity]) => quantity && parseInt(quantity) > 0)
+        .filter(([_, quantity]) => quantity > 0)
         .map(([productId, quantity]) => ({
           product_id: parseInt(productId),
-          quantity: parseInt(quantity),
+          quantity,
         }))
         orderItem.push({
           variety_id: parseInt(variety.variety_id),

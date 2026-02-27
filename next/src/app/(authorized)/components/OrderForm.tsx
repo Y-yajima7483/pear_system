@@ -4,6 +4,7 @@ import { useEffect, useMemo } from 'react'
 import { Control, FieldErrors, UseFormTrigger, UseFormWatch, UseFormSetValue, UseFieldArrayReturn } from 'react-hook-form'
 import TextField from '@/components/input/TextField'
 import TextArea from '@/components/input/TextArea';
+import NumberStepper from '@/components/input/NumberStepper';
 import TimeSelect from '@/components/input/TimeSelect';
 import DatePicker from '@/components/input/DatePicker';
 import SelectBox from '@/components/input/SelectBox';
@@ -18,7 +19,7 @@ import type { OrderItemStatusType } from '@/types/order'
 export interface ItemValueType {
   variety_id: string; // 品種ID（SelectBoxはstring型で扱う）
   product: {
-    [product_id: string]: string; // 商品ID: 数量（入力値はstring型）
+    [product_id: string]: number; // 商品ID: 数量
   };
 }
 
@@ -99,7 +100,7 @@ export default function OrderForm({
               const productKey = product.value.toString()
               // 既存の値がない場合のみ'0'を設定
               if (updatedProducts[productKey] === undefined) {
-                updatedProducts[productKey] = '0'
+                updatedProducts[productKey] = 0
               }
             })
 
@@ -215,17 +216,16 @@ export default function OrderForm({
               {selectedVarietyId && products.length > 0 && (
                 <div className="space-y-6">
                   <h4 className="font-medium mb-8">商品別注文数</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-14 gap-x-4">
+                  <div className="grid grid-cols-1 gap-y-6 gap-x-4">
                     {products.map((product) => (
-                      <TextField
+                      <NumberStepper
                         key={product.value}
                         control={control}
                         name={`items.${index}.product.${product.value}` as const}
-                        inputLabel={product.label}
-                        type="number"
-                        trigger={trigger}
-                        defaultValue={"0"}
-                        suffix='個'
+                        label={product.label}
+                        unit="個"
+                        min={0}
+                        step={1}
                         errorMessage={errors.items?.[index]?.product?.[product.value.toString()]?.message}
                       />
                     ))}

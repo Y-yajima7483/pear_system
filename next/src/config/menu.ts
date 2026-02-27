@@ -1,4 +1,4 @@
-import { Calendar, ClipboardList, LucideIcon } from 'lucide-react';
+import { Calendar, ClipboardList, Truck, LucideIcon } from 'lucide-react';
 
 export interface MenuItem {
   id: string;
@@ -19,5 +19,11 @@ export const MENU_ITEMS: MenuItem[] = [
     label: '準備ボード',
     href: '/prep-board',
     icon: ClipboardList,
+  },
+  {
+    id: 'shipment-record',
+    label: '出荷記録',
+    href: '/shipment-record',
+    icon: Truck,
   },
 ];

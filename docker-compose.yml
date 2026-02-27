@@ -85,6 +85,26 @@ services:
       retries: 5
       start_period: 30s
 
+  storybook:
+    build:
+      context: .
+      dockerfile: ./docker/node/Dockerfile
+    container_name: pear_storybook
+    volumes:
+      - ./next:/app
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    ports:
+      - "${STORYBOOK_PORT:-6006}:6006"
+    networks:
+      - pear_network
+    restart: unless-stopped
+    tty: true
+    command: ["yarn", "storybook"]
+    profiles:
+      - storybook
+
 networks:
   pear_network:
     driver: bridge

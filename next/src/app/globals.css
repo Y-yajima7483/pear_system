@@ -662,6 +662,93 @@ input[type="time"]::-webkit-clear-button {
   @apply text-sm font-medium absolute mt-1;
 }
 
+/** ナンバーステッパー */
+.number-stepper {
+  @apply relative mb-6;
+}
+
+.number-stepper__label {
+  @apply block text-sm font-medium mb-2;
+  color: var(--text-primary);
+}
+
+.number-stepper__required {
+  @apply ml-0.5;
+  color: var(--error);
+}
+
+.number-stepper__body {
+  @apply flex items-center;
+  height: 48px;
+  border: 1.5px solid var(--border-default);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg);
+  transition: border-color 0.2s;
+}
+
+.number-stepper__body:hover {
+  border-color: var(--border-hover);
+}
+
+.number-stepper__btn {
+  @apply flex items-center justify-center shrink-0 cursor-pointer border-none;
+  width: 52px;
+  height: 100%;
+  background: var(--gray-100);
+  transition: background 0.15s;
+}
+
+.number-stepper__btn:hover:not(:disabled) {
+  background: var(--gray-200);
+}
+
+.number-stepper__btn:disabled {
+  @apply cursor-not-allowed opacity-40;
+}
+
+.number-stepper__btn--minus {
+  border-right: 1.5px solid var(--border-default);
+}
+
+.number-stepper__btn--plus {
+  border-left: 1.5px solid var(--border-default);
+}
+
+.number-stepper__icon {
+  width: 18px;
+  height: 18px;
+  color: var(--text-primary);
+}
+
+.number-stepper__btn:disabled .number-stepper__icon {
+  color: var(--gray-400);
+}
+
+.number-stepper__value {
+  @apply flex-1 text-center text-base font-semibold select-none;
+  color: var(--text-primary);
+}
+
+.number-stepper__unit {
+  @apply text-sm font-normal ml-1;
+  color: var(--text-secondary);
+}
+
+.number-stepper__error {
+  color: var(--error);
+  @apply text-sm font-medium absolute mt-1 pl-1;
+}
+
+/* エラー状態 */
+.number-stepper.error .number-stepper__body {
+  border-color: var(--error);
+}
+
+.number-stepper.error .number-stepper__label {
+  color: var(--error);
+}
+
 /** ボタン */
 .button-base {
   @apply relative text-white inline-flex items-center justify-center gap-2 px-6 py-2.5 overflow-hidden text-sm font-semibold transition-all duration-300 border-none rounded-[10px] cursor-pointer;
@@ -1727,6 +1814,154 @@ input[type="time"]::-webkit-clear-button {
 
   .prep-board-footer-value {
     @apply text-lg;
+  }
+}
+
+/* ==========================================
+   出荷記録一覧
+   ========================================== */
+
+/* テーブルラッパー */
+.shipment-record-card {
+  background: white;
+  border: 1px solid var(--pear-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+/* テーブル */
+.shipment-record-table {
+  @apply w-full text-[13px];
+  border-collapse: collapse;
+}
+
+.shipment-record-table th,
+.shipment-record-table td {
+  @apply py-2.5 px-4 text-left;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.shipment-record-table th {
+  @apply text-[11px] font-semibold sticky top-0 z-[1];
+  color: var(--text-muted);
+  background: var(--gray-50);
+}
+
+.shipment-record-table tbody tr {
+  @apply cursor-pointer;
+  transition: background 0.1s;
+}
+
+.shipment-record-table tbody tr:hover {
+  background: var(--pear-card-bg);
+}
+
+.shipment-record-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* 日付リンク風スタイル */
+.shipment-record-date {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* 数量バッジ */
+.shipment-record-quantity {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* 備考セル */
+.shipment-record-notes {
+  @apply text-xs;
+  color: var(--text-muted);
+}
+
+/* 編集ボタン */
+.shipment-record-edit-btn {
+  @apply inline-flex items-center gap-1.5 py-1 px-2.5 text-xs font-semibold rounded-lg cursor-pointer;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.shipment-record-edit-btn:hover {
+  background: var(--gray-100);
+}
+
+/* 月フィルターセレクト */
+.shipment-month-select {
+  @apply py-1 px-2.5 text-[13px] cursor-pointer;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  background: white;
+}
+
+.shipment-month-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(139, 169, 98, 0.15);
+}
+
+/* フィルター解除ボタン */
+.shipment-month-clear {
+  @apply text-[11px] py-0.5 px-2 rounded-lg cursor-pointer;
+  border: 1px solid var(--border-default);
+  background: white;
+  color: var(--text-muted);
+  transition: all 0.15s;
+}
+
+.shipment-month-clear:hover {
+  background: var(--pear-card-bg);
+  color: var(--text-secondary);
+}
+
+/* サマリー統計カード */
+.shipment-summary-row {
+  @apply grid gap-3 mt-5 mb-5;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.shipment-stat-card {
+  @apply py-4 px-4 rounded-xl;
+  background: white;
+  border: 1px solid var(--pear-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.shipment-stat-label {
+  @apply text-xs font-medium mb-1;
+  color: var(--text-muted);
+}
+
+.shipment-stat-value {
+  @apply text-2xl font-bold;
+  color: var(--text-primary);
+}
+
+.shipment-stat-unit {
+  @apply text-[13px] font-normal ml-0.5;
+  color: var(--text-muted);
+}
+
+.shipment-stat-accent .shipment-stat-value {
+  color: var(--primary);
+}
+
+/* レスポンシブ */
+@media (max-width: 768px) {
+  .shipment-summary-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .shipment-record-table th,
+  .shipment-record-table td {
+    @apply py-2 px-2.5;
   }
 }
 

@@ -67,6 +67,7 @@ next/.yarn/*
 !next/.yarn/versions
 next/.pnp.*
 next/coverage/
+next/storybook-static/
 next/.vercel
 next/*.tsbuildinfo
 next/next-env.d.ts

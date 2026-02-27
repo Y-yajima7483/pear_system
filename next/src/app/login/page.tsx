@@ -14,7 +14,9 @@ import { userStore } from '@/stores/useUserStore';
 import { http,handleApiError } from '@/lib/api/http';
 import { overlayStore } from '@/stores/useOverlayStore';
 import { useVarietyOptionStore } from '@/stores/useVarietyOptionStore';
-import { useProductOptionStore } from '@/stores/useProductOptionStore'; 
+import { useProductOptionStore } from '@/stores/useProductOptionStore';
+import { useShipmentTypeOptionStore } from '@/stores/useShipmentTypeOptionStore';
+import { useGradeOptionStore } from '@/stores/useGradeOptionStore';
 
 interface FormData {
   email: string;
@@ -32,6 +34,8 @@ export default function Home() {
   const { isAuthorized, login } = userStore();
   const { fetchVarietyOptions } = useVarietyOptionStore();
   const { fetchProductOptions } = useProductOptionStore();
+  const { fetchShipmentTypeOptions } = useShipmentTypeOptionStore();
+  const { fetchGradeOptions } = useGradeOptionStore();
   const { control, trigger, handleSubmit, formState: { errors }, } = useForm<FormData>({
     defaultValues: { email: "", password: "" },
     resolver: yupResolver(schema),
@@ -46,10 +50,12 @@ export default function Home() {
         console.log(res.status)
         login(res.data);
         
-        // ログイン成功後に品種一覧と商品一覧を取得
+        // ログイン成功後にマスタデータを取得
         await Promise.all([
           fetchVarietyOptions(),
-          fetchProductOptions()
+          fetchProductOptions(),
+          fetchShipmentTypeOptions(),
+          fetchGradeOptions(),
         ]);
         
         toast.success("ログインしました");

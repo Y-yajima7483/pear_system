@@ -53,9 +53,9 @@ export default function OrderUpdateDialog({
   // 注文データをフォーム用の初期値に変換
   const convertOrderDataToFormValues = (data: OrderDetailData): OrderFormInputs => {
     const items: ItemValueType[] = data.items.map(item => {
-      const product: { [key: string]: string } = {};
+      const product: { [key: string]: number } = {};
       item.products.forEach(p => {
-        product[p.product_id.toString()] = p.quantity.toString();
+        product[p.product_id.toString()] = p.quantity;
       });
 
       return {
@@ -98,10 +98,10 @@ export default function OrderUpdateDialog({
     let orderItem: Array<OrderItemRequestType> = [];
     data.items.forEach((variety, index) => {
       const items = Object.entries(variety.product)
-        .filter(([_, quantity]) => quantity && parseInt(quantity) > 0)
+        .filter(([_, quantity]) => quantity > 0)
         .map(([productId, quantity]) => ({
           product_id: parseInt(productId),
-          quantity: parseInt(quantity),
+          quantity,
         }))
       orderItem.push({
         variety_id: parseInt(variety.variety_id),
