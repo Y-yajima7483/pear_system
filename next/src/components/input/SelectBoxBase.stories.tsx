@@ -75,7 +75,7 @@ export const NumberValues: Story = {
 
 export const Controlled: Story = {
   render: (args) => {
-    const [value, setValue] = useState<string | null>(null);
+    const [value, setValue] = useState<string | number | null>(null);
     return (
       <div>
         <SelectBoxBase

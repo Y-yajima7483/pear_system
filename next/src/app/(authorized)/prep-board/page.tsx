@@ -129,20 +129,24 @@ export default function PrepBoardPage() {
         {data && data.row_headers.length > 0 ? (
           <>
             {/* 1日目のマトリックス */}
-            <PrepBoardMatrix
-              rowHeaders={data.row_headers}
-              orders={getOrdersForDate(dateKeys[0])}
-              dateLabel={formatDateLabel(dateKeys[0])}
-              onItemClick={handleItemClick}
-            />
+            {getOrdersForDate(dateKeys[0]).length > 0 && (
+              <PrepBoardMatrix
+                rowHeaders={data.row_headers}
+                orders={getOrdersForDate(dateKeys[0])}
+                dateLabel={formatDateLabel(dateKeys[0])}
+                onItemClick={handleItemClick}
+              />
+            )}
 
             {/* 2日目のマトリックス */}
-            <PrepBoardMatrix
-              rowHeaders={data.row_headers}
-              orders={getOrdersForDate(dateKeys[1])}
-              dateLabel={formatDateLabel(dateKeys[1])}
-              onItemClick={handleItemClick}
-            />
+            {getOrdersForDate(dateKeys[1]).length > 0 && (
+              <PrepBoardMatrix
+                rowHeaders={data.row_headers}
+                orders={getOrdersForDate(dateKeys[1])}
+                dateLabel={formatDateLabel(dateKeys[1])}
+                onItemClick={handleItemClick}
+              />
+            )}
           </>
         ) : (
           <div className="text-center py-12 pear-text-muted">

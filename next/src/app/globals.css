@@ -726,12 +726,35 @@ input[type="time"]::-webkit-clear-button {
 }
 
 .number-stepper__value {
-  @apply flex-1 text-center text-base font-semibold select-none;
+  @apply flex-1 flex items-center justify-center;
   color: var(--text-primary);
 }
 
+.number-stepper__input {
+  @apply text-center text-base font-semibold;
+  width: 100%;
+  max-width: 4em;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  appearance: none;
+  -moz-appearance: textfield;
+  padding: 0;
+}
+
+.number-stepper__input::-webkit-outer-spin-button,
+.number-stepper__input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.number-stepper__input:disabled {
+  @apply cursor-not-allowed opacity-100;
+}
+
 .number-stepper__unit {
-  @apply text-sm font-normal ml-1;
+  @apply text-sm font-normal ml-1 shrink-0;
   color: var(--text-secondary);
 }
 
@@ -1962,6 +1985,335 @@ input[type="time"]::-webkit-clear-button {
   .shipment-record-table th,
   .shipment-record-table td {
     @apply py-2 px-2.5;
+  }
+}
+
+/* ==========================================
+   出荷記録 登録フォーム
+   ========================================== */
+
+/* タブUI */
+.shipment-type-tabs {
+  @apply flex gap-1 mb-4;
+  border-bottom: 2px solid var(--pear-border);
+  padding-bottom: 0;
+}
+
+.shipment-type-tab {
+  @apply px-4 py-2 text-sm font-medium cursor-pointer rounded-t-lg;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s ease;
+}
+
+.shipment-type-tab:hover {
+  color: var(--pear-primary-dark);
+  background: rgba(139, 169, 98, 0.05);
+}
+
+.shipment-type-tab--active {
+  color: var(--pear-primary-dark);
+  border-bottom-color: var(--primary);
+  font-weight: 600;
+}
+
+/* 等級テーブル */
+.shipment-grade-table-wrapper {
+  @apply overflow-x-auto mt-3;
+  -webkit-overflow-scrolling: touch;
+}
+
+.shipment-grade-table {
+  @apply w-full text-sm;
+  border-collapse: collapse;
+}
+
+.shipment-grade-table th,
+.shipment-grade-table td {
+  @apply py-2 px-2 text-center;
+  border-bottom: 1px solid var(--pear-border-light);
+  min-width: 70px;
+}
+
+.shipment-grade-table th {
+  @apply text-xs font-medium;
+  color: var(--text-secondary);
+  background: var(--pear-card-bg);
+  white-space: nowrap;
+}
+
+.shipment-grade-table th:first-child,
+.shipment-grade-table td:first-child {
+  @apply text-left;
+  min-width: auto;
+  width: 60px;
+}
+
+/* 販売/非販売タグ */
+.shipment-grade-type-tag {
+  @apply inline-block text-xs px-1.5 py-0.5 rounded-full font-medium;
+}
+
+.shipment-grade-type-tag--sales {
+  background: rgba(139, 169, 98, 0.15);
+  color: var(--pear-primary-dark);
+}
+
+.shipment-grade-type-tag--non-sales {
+  background: rgba(200, 160, 80, 0.15);
+  color: var(--warning-dark);
+}
+
+/* コンパクト数値入力 */
+.shipment-num-input {
+  @apply w-full text-center text-sm py-1.5 px-1 rounded-md;
+  border: 1px solid var(--pear-border);
+  background: var(--bg);
+  color: var(--text-primary);
+  transition: border-color 0.2s ease;
+  -moz-appearance: textfield;
+}
+
+.shipment-num-input::-webkit-outer-spin-button,
+.shipment-num-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.shipment-num-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(139, 169, 98, 0.15);
+}
+
+/* 小計行 */
+.shipment-row-subtotal {
+  @apply font-semibold text-sm;
+  color: var(--pear-primary-dark);
+}
+
+.shipment-row-subtotal td {
+  @apply pt-3;
+  border-bottom: 2px solid var(--pear-border);
+}
+
+/* ========================================
+   直売 品種カード型UI
+   ======================================== */
+
+/* セクション区切り */
+.ds-section-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.ds-section-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--pear-border);
+}
+
+/* 品種追加行 */
+.ds-variety-add-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.ds-variety-add-row .select-field {
+  flex: 1;
+  max-width: 200px;
+}
+
+/* 品種カード */
+.ds-variety-card {
+  border: 1px solid var(--pear-border);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.ds-variety-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--pear-card-bg);
+  border-bottom: 1px solid var(--pear-border);
+}
+
+.ds-variety-card__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ds-variety-card__body {
+  padding: 0;
+}
+
+/* カラムヘッダー */
+.ds-column-headers {
+  display: grid;
+  grid-template-columns: 130px 1fr 1fr 36px;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--pear-border);
+  background: var(--gray-50);
+}
+
+/* 商品グループ */
+.ds-product-group + .ds-product-group {
+  border-top: 1px solid var(--pear-border);
+}
+
+/* 商品行 */
+.ds-product-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 1fr 36px;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 16px;
+  min-height: 52px;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.ds-product-row:last-child {
+  border-bottom: none;
+}
+
+.ds-product-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* 数量入力のセンタリング */
+.ds-product-row .number-stepper {
+  margin: 0 auto;
+}
+
+/* 行操作ボタン */
+.ds-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ds-add-row-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--pear-border);
+  background: #fff;
+  color: var(--primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ds-add-row-btn:hover {
+  background: var(--success-bg);
+  border-color: var(--primary);
+}
+
+.ds-remove-row-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ds-remove-row-btn:hover {
+  background: var(--error-bg);
+  color: var(--error);
+  border-color: var(--error-light);
+}
+
+/* 備考エリア */
+.shipment-notes-area {
+  @apply mt-6;
+}
+
+/* レスポンシブ（フォーム用） */
+@media (max-width: 640px) {
+  .shipment-grade-table th,
+  .shipment-grade-table td {
+    @apply py-1.5 px-1;
+    min-width: 56px;
+    font-size: 0.75rem;
+  }
+
+  .shipment-num-input {
+    @apply text-xs py-1;
+  }
+
+  /* 直売品種カード レスポンシブ */
+  .ds-product-row {
+    grid-template-columns: 100px 1fr 1fr 32px;
+    gap: 6px;
+    padding: 8px 12px;
+  }
+
+  .ds-column-headers {
+    grid-template-columns: 100px 1fr 1fr 32px;
+    padding: 8px 12px;
+  }
+
+  .ds-product-name {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ds-column-headers {
+    display: none;
+  }
+
+  .ds-product-row {
+    grid-template-columns: 1fr 1fr 32px;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .ds-product-row .ds-product-name {
+    grid-column: 1 / -1;
+  }
+
+  .ds-add-row-btn,
+  .ds-remove-row-btn {
+    width: 24px;
+    height: 24px;
   }
 }
 

@@ -15,7 +15,6 @@ import { http,handleApiError } from '@/lib/api/http';
 import { overlayStore } from '@/stores/useOverlayStore';
 import { useVarietyOptionStore } from '@/stores/useVarietyOptionStore';
 import { useProductOptionStore } from '@/stores/useProductOptionStore';
-import { useShipmentTypeOptionStore } from '@/stores/useShipmentTypeOptionStore';
 import { useGradeOptionStore } from '@/stores/useGradeOptionStore';
 
 interface FormData {
@@ -34,7 +33,6 @@ export default function Home() {
   const { isAuthorized, login } = userStore();
   const { fetchVarietyOptions } = useVarietyOptionStore();
   const { fetchProductOptions } = useProductOptionStore();
-  const { fetchShipmentTypeOptions } = useShipmentTypeOptionStore();
   const { fetchGradeOptions } = useGradeOptionStore();
   const { control, trigger, handleSubmit, formState: { errors }, } = useForm<FormData>({
     defaultValues: { email: "", password: "" },
@@ -54,7 +52,6 @@ export default function Home() {
         await Promise.all([
           fetchVarietyOptions(),
           fetchProductOptions(),
-          fetchShipmentTypeOptions(),
           fetchGradeOptions(),
         ]);
         

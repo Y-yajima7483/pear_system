@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\ShipmentTypeEnum;
 use App\Models\ShipmentRecord\ShipmentRecord;
 use App\Models\ShipmentRecordDetail\ShipmentRecordDetail;
 use Carbon\Carbon;
@@ -15,10 +16,6 @@ class ShipmentRecordSeeder extends Seeder
     private const VARIETY_HOUSUI = 3;     // 豊水
     private const VARIETY_AKIZUKI = 4;    // あきづき
     private const VARIETY_NIKKORI = 5;    // にっこり
-
-    // 出荷区分ID
-    private const TYPE_DIRECT = 1;  // 直売
-    private const TYPE_JA = 2;      // JA出荷
 
     // 等級ID
     private const GRADE_SHU = 1;           // 秀
@@ -46,18 +43,9 @@ class ShipmentRecordSeeder extends Seeder
         $this->command->info('Shipment records seeded successfully!');
     }
 
-    /**
-     * 8月の出荷記録（中旬〜月末、幸水メイン）
-     */
     private function seedAugust(): void
     {
-        $dates = [
-            12, 13, 14, 16, 17, 18, 19, 20,
-            22, 23, 24, 25, 26, 27,
-            28, 29, 30, 31,
-        ];
-
-        foreach ($dates as $i => $day) {
+        for ($day = 1; $day <= 31; $day++) {
             $date = Carbon::create(2026, 8, $day);
             $details = $this->generateAugustDetails($day);
             $notes = $this->getAugustNotes($day);
@@ -65,19 +53,9 @@ class ShipmentRecordSeeder extends Seeder
         }
     }
 
-    /**
-     * 9月の出荷記録（ほぼ毎日、豊水・彩玉メイン）
-     */
     private function seedSeptember(): void
     {
-        // 休みの日を除くほぼ毎日
-        $skipDays = [7, 14, 21, 28]; // 日曜日を休み
-
         for ($day = 1; $day <= 30; $day++) {
-            if (in_array($day, $skipDays)) {
-                continue;
-            }
-
             $date = Carbon::create(2026, 9, $day);
             $details = $this->generateSeptemberDetails($day);
             $notes = $this->getSeptemberNotes($day);
@@ -127,35 +105,46 @@ class ShipmentRecordSeeder extends Seeder
         }
     }
 
-    /**
-     * 8月の明細データ生成（幸水メイン、後半に彩玉も）
-     */
     private function generateAugustDetails(int $day): array
     {
         $details = [];
 
-        // 幸水（8月の主力品種）
-        $details[] = ['variety_id' => self::VARIETY_KOUSUI, 'shipment_type_id' => self::TYPE_DIRECT, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(15, 40)];
-        $details[] = ['variety_id' => self::VARIETY_KOUSUI, 'shipment_type_id' => self::TYPE_JA, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(30, 80)];
-        $details[] = ['variety_id' => self::VARIETY_KOUSUI, 'shipment_type_id' => self::TYPE_JA, 'grade_id' => self::GRADE_YU, 'quantity' => rand(20, 50)];
+        if ($day <= 11) {
+            // 8月上旬: 幸水の出荷開始時期（少量）
+            $details[] = ['variety_id' => self::VARIETY_KOUSUI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(5, 20)];
+            $details[] = ['variety_id' => self::VARIETY_KOUSUI, 'shipment_type_id' => ShipmentTypeEnum::JA->value, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(10, 40)];
 
-        // 幸水の良品・規格外（一定確率で追加）
-        if ($day % 3 === 0) {
-            $details[] = ['variety_id' => self::VARIETY_KOUSUI, 'shipment_type_id' => self::TYPE_DIRECT, 'grade_id' => self::GRADE_RYO, 'quantity' => rand(5, 15)];
-        }
-        if ($day % 4 === 0) {
-            $details[] = ['variety_id' => self::VARIETY_KOUSUI, 'shipment_type_id' => self::TYPE_DIRECT, 'grade_id' => self::GRADE_KIKAKUGAI_S, 'quantity' => rand(3, 10)];
+            if ($day >= 5) {
+                $details[] = ['variety_id' => self::VARIETY_KOUSUI, 'shipment_type_id' => ShipmentTypeEnum::JA->value, 'grade_id' => self::GRADE_YU, 'quantity' => rand(5, 20)];
+            }
+
+            if ($day % 3 === 0) {
+                $details[] = ['variety_id' => self::VARIETY_KOUSUI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_RYO, 'quantity' => rand(2, 8)];
+            }
+        } else {
+            // 8月中旬〜下旬: 幸水の本格出荷
+            $details[] = ['variety_id' => self::VARIETY_KOUSUI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(15, 40)];
+            $details[] = ['variety_id' => self::VARIETY_KOUSUI, 'shipment_type_id' => ShipmentTypeEnum::JA->value, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(30, 80)];
+            $details[] = ['variety_id' => self::VARIETY_KOUSUI, 'shipment_type_id' => ShipmentTypeEnum::JA->value, 'grade_id' => self::GRADE_YU, 'quantity' => rand(20, 50)];
+
+            // 幸水の良品・規格外（一定確率で追加）
+            if ($day % 3 === 0) {
+                $details[] = ['variety_id' => self::VARIETY_KOUSUI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_RYO, 'quantity' => rand(5, 15)];
+            }
+            if ($day % 4 === 0) {
+                $details[] = ['variety_id' => self::VARIETY_KOUSUI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_KIKAKUGAI_S, 'quantity' => rand(3, 10)];
+            }
         }
 
         // 8月下旬から彩玉も出荷開始
         if ($day >= 25) {
-            $details[] = ['variety_id' => self::VARIETY_SAIGYOKU, 'shipment_type_id' => self::TYPE_DIRECT, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(5, 20)];
-            $details[] = ['variety_id' => self::VARIETY_SAIGYOKU, 'shipment_type_id' => self::TYPE_JA, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(10, 30)];
+            $details[] = ['variety_id' => self::VARIETY_SAIGYOKU, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(5, 20)];
+            $details[] = ['variety_id' => self::VARIETY_SAIGYOKU, 'shipment_type_id' => ShipmentTypeEnum::JA->value, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(10, 30)];
         }
 
         // ロス（たまに発生）
         if ($day % 5 === 0) {
-            $details[] = ['variety_id' => self::VARIETY_KOUSUI, 'shipment_type_id' => self::TYPE_DIRECT, 'grade_id' => self::GRADE_LOSS, 'quantity' => rand(1, 5)];
+            $details[] = ['variety_id' => self::VARIETY_KOUSUI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_LOSS, 'quantity' => rand(1, 5)];
         }
 
         return $details;
@@ -169,41 +158,41 @@ class ShipmentRecordSeeder extends Seeder
         $details = [];
 
         // 豊水（9月の主力品種）
-        $details[] = ['variety_id' => self::VARIETY_HOUSUI, 'shipment_type_id' => self::TYPE_DIRECT, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(20, 50)];
-        $details[] = ['variety_id' => self::VARIETY_HOUSUI, 'shipment_type_id' => self::TYPE_JA, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(40, 100)];
-        $details[] = ['variety_id' => self::VARIETY_HOUSUI, 'shipment_type_id' => self::TYPE_JA, 'grade_id' => self::GRADE_YU, 'quantity' => rand(20, 60)];
+        $details[] = ['variety_id' => self::VARIETY_HOUSUI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(20, 50)];
+        $details[] = ['variety_id' => self::VARIETY_HOUSUI, 'shipment_type_id' => ShipmentTypeEnum::JA->value, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(40, 100)];
+        $details[] = ['variety_id' => self::VARIETY_HOUSUI, 'shipment_type_id' => ShipmentTypeEnum::JA->value, 'grade_id' => self::GRADE_YU, 'quantity' => rand(20, 60)];
 
         // 彩玉
-        $details[] = ['variety_id' => self::VARIETY_SAIGYOKU, 'shipment_type_id' => self::TYPE_DIRECT, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(10, 30)];
-        $details[] = ['variety_id' => self::VARIETY_SAIGYOKU, 'shipment_type_id' => self::TYPE_JA, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(20, 50)];
+        $details[] = ['variety_id' => self::VARIETY_SAIGYOKU, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(10, 30)];
+        $details[] = ['variety_id' => self::VARIETY_SAIGYOKU, 'shipment_type_id' => ShipmentTypeEnum::JA->value, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(20, 50)];
 
         // 9月上旬は幸水の残りも
         if ($day <= 10) {
-            $details[] = ['variety_id' => self::VARIETY_KOUSUI, 'shipment_type_id' => self::TYPE_DIRECT, 'grade_id' => self::GRADE_YU, 'quantity' => rand(5, 15)];
+            $details[] = ['variety_id' => self::VARIETY_KOUSUI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_YU, 'quantity' => rand(5, 15)];
         }
 
         // 9月下旬からあきづきも出荷開始
         if ($day >= 20) {
-            $details[] = ['variety_id' => self::VARIETY_AKIZUKI, 'shipment_type_id' => self::TYPE_DIRECT, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(5, 20)];
-            $details[] = ['variety_id' => self::VARIETY_AKIZUKI, 'shipment_type_id' => self::TYPE_JA, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(10, 30)];
+            $details[] = ['variety_id' => self::VARIETY_AKIZUKI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(5, 20)];
+            $details[] = ['variety_id' => self::VARIETY_AKIZUKI, 'shipment_type_id' => ShipmentTypeEnum::JA->value, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(10, 30)];
         }
 
         // 良品・規格外（一定確率で追加）
         if ($day % 3 === 0) {
-            $details[] = ['variety_id' => self::VARIETY_HOUSUI, 'shipment_type_id' => self::TYPE_DIRECT, 'grade_id' => self::GRADE_RYO, 'quantity' => rand(5, 20)];
+            $details[] = ['variety_id' => self::VARIETY_HOUSUI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_RYO, 'quantity' => rand(5, 20)];
         }
         if ($day % 4 === 0) {
-            $details[] = ['variety_id' => self::VARIETY_HOUSUI, 'shipment_type_id' => self::TYPE_DIRECT, 'grade_id' => self::GRADE_KIKAKUGAI_S, 'quantity' => rand(3, 12)];
+            $details[] = ['variety_id' => self::VARIETY_HOUSUI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_KIKAKUGAI_S, 'quantity' => rand(3, 12)];
         }
 
         // プレゼント（月に数回）
         if ($day === 5 || $day === 15 || $day === 25) {
-            $details[] = ['variety_id' => self::VARIETY_HOUSUI, 'shipment_type_id' => self::TYPE_DIRECT, 'grade_id' => self::GRADE_PRESENT, 'quantity' => rand(2, 8)];
+            $details[] = ['variety_id' => self::VARIETY_HOUSUI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_PRESENT, 'quantity' => rand(2, 8)];
         }
 
         // ロス
         if ($day % 6 === 0) {
-            $details[] = ['variety_id' => self::VARIETY_HOUSUI, 'shipment_type_id' => self::TYPE_DIRECT, 'grade_id' => self::GRADE_LOSS, 'quantity' => rand(1, 5)];
+            $details[] = ['variety_id' => self::VARIETY_HOUSUI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_LOSS, 'quantity' => rand(1, 5)];
         }
 
         return $details;
@@ -217,35 +206,35 @@ class ShipmentRecordSeeder extends Seeder
         $details = [];
 
         // あきづき（10月の主力品種）
-        $details[] = ['variety_id' => self::VARIETY_AKIZUKI, 'shipment_type_id' => self::TYPE_DIRECT, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(15, 40)];
-        $details[] = ['variety_id' => self::VARIETY_AKIZUKI, 'shipment_type_id' => self::TYPE_JA, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(30, 80)];
-        $details[] = ['variety_id' => self::VARIETY_AKIZUKI, 'shipment_type_id' => self::TYPE_JA, 'grade_id' => self::GRADE_YU, 'quantity' => rand(15, 40)];
+        $details[] = ['variety_id' => self::VARIETY_AKIZUKI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(15, 40)];
+        $details[] = ['variety_id' => self::VARIETY_AKIZUKI, 'shipment_type_id' => ShipmentTypeEnum::JA->value, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(30, 80)];
+        $details[] = ['variety_id' => self::VARIETY_AKIZUKI, 'shipment_type_id' => ShipmentTypeEnum::JA->value, 'grade_id' => self::GRADE_YU, 'quantity' => rand(15, 40)];
 
         // にっこり（10月中旬から本格化）
         if ($day >= 8) {
-            $details[] = ['variety_id' => self::VARIETY_NIKKORI, 'shipment_type_id' => self::TYPE_DIRECT, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(10, 30)];
-            $details[] = ['variety_id' => self::VARIETY_NIKKORI, 'shipment_type_id' => self::TYPE_JA, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(20, 50)];
+            $details[] = ['variety_id' => self::VARIETY_NIKKORI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(10, 30)];
+            $details[] = ['variety_id' => self::VARIETY_NIKKORI, 'shipment_type_id' => ShipmentTypeEnum::JA->value, 'grade_id' => self::GRADE_SHU, 'quantity' => rand(20, 50)];
         }
 
         // 10月上旬は豊水の残りも
         if ($day <= 7) {
-            $details[] = ['variety_id' => self::VARIETY_HOUSUI, 'shipment_type_id' => self::TYPE_DIRECT, 'grade_id' => self::GRADE_YU, 'quantity' => rand(5, 15)];
+            $details[] = ['variety_id' => self::VARIETY_HOUSUI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_YU, 'quantity' => rand(5, 15)];
         }
 
         // 良品・規格外
         if ($day % 3 === 0) {
-            $details[] = ['variety_id' => self::VARIETY_AKIZUKI, 'shipment_type_id' => self::TYPE_DIRECT, 'grade_id' => self::GRADE_RYO, 'quantity' => rand(5, 15)];
+            $details[] = ['variety_id' => self::VARIETY_AKIZUKI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_RYO, 'quantity' => rand(5, 15)];
         }
         if ($day % 5 === 0) {
-            $details[] = ['variety_id' => self::VARIETY_AKIZUKI, 'shipment_type_id' => self::TYPE_DIRECT, 'grade_id' => self::GRADE_KIKAKUGAI_S, 'quantity' => rand(3, 10)];
+            $details[] = ['variety_id' => self::VARIETY_AKIZUKI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_KIKAKUGAI_S, 'quantity' => rand(3, 10)];
         }
         if ($day % 4 === 0) {
-            $details[] = ['variety_id' => self::VARIETY_NIKKORI, 'shipment_type_id' => self::TYPE_DIRECT, 'grade_id' => self::GRADE_KIKAKUGAI_NS, 'quantity' => rand(2, 6)];
+            $details[] = ['variety_id' => self::VARIETY_NIKKORI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_KIKAKUGAI_NS, 'quantity' => rand(2, 6)];
         }
 
         // ロス
         if ($day % 7 === 0) {
-            $details[] = ['variety_id' => self::VARIETY_AKIZUKI, 'shipment_type_id' => self::TYPE_DIRECT, 'grade_id' => self::GRADE_LOSS, 'quantity' => rand(1, 4)];
+            $details[] = ['variety_id' => self::VARIETY_AKIZUKI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_LOSS, 'quantity' => rand(1, 4)];
         }
 
         return $details;

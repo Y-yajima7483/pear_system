@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from "react";
 import type { FieldValues, FieldPath } from "react-hook-form";
 import { Minus, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,12 @@ export default function NumberStepperBase<StepperValues extends FieldValues>({
 	required,
 	disabled,
 }: Props<StepperValues>) {
+	const [inputValue, setInputValue] = useState(String(value));
+
+	useEffect(() => {
+		setInputValue(String(value));
+	}, [value]);
+
 	const isMinReached = min !== undefined && value <= min;
 	const isMaxReached = max !== undefined && value >= max;
 
@@ -44,6 +51,25 @@ export default function NumberStepperBase<StepperValues extends FieldValues>({
 		if (disabled || isMaxReached) return;
 		const next = value + step;
 		onChange?.(max !== undefined ? Math.min(max, next) : next);
+	};
+
+	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const v = e.target.value;
+		if (v === "" || /^\d+$/.test(v)) {
+			setInputValue(v);
+		}
+	};
+
+	const handleBlur = () => {
+		if (inputValue === "" || isNaN(Number(inputValue))) {
+			setInputValue(String(value));
+			return;
+		}
+		let num = Number(inputValue);
+		if (min !== undefined) num = Math.max(min, num);
+		if (max !== undefined) num = Math.min(max, num);
+		setInputValue(String(num));
+		onChange?.(num);
 	};
 
 	return (
@@ -64,10 +90,19 @@ export default function NumberStepperBase<StepperValues extends FieldValues>({
 				>
 					<Minus className="number-stepper__icon" />
 				</button>
-				<span id={`stepper-${name}`} className="number-stepper__value">
-					{value}
+				<div className="number-stepper__value">
+					<input
+						id={`stepper-${name}`}
+						type="text"
+						inputMode="numeric"
+						className="number-stepper__input"
+						value={inputValue}
+						onChange={handleInputChange}
+						onBlur={handleBlur}
+						disabled={disabled}
+					/>
 					{unit && <span className="number-stepper__unit">{unit}</span>}
-				</span>
+				</div>
 				<button
 					type="button"
 					className="number-stepper__btn number-stepper__btn--plus"

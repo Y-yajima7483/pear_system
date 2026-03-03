@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { http } from '@/lib/api/http';
-import { ApiOptionType } from '@/types';
+import { GradeApiOptionType } from '@/types';
 
 interface GradeOptionState {
-  gradeOptions: ApiOptionType[];
+  gradeOptions: GradeApiOptionType[];
   isLoading: boolean;
   error: string | null;
   lastFetchedAt: Date | null;
@@ -39,7 +39,7 @@ export const useGradeOptionStore = create<GradeOptionState>()(
           set({ isLoading: true, error: null });
 
           try {
-            const response = await http.get<Array<ApiOptionType>>('/grade_option');
+            const response = await http.get<Array<GradeApiOptionType>>('/grade_option');
 
             set({
               gradeOptions: response.data,
@@ -61,7 +61,7 @@ export const useGradeOptionStore = create<GradeOptionState>()(
           set({ isLoading: true, error: null });
 
           try {
-            const response = await http.get<ApiOptionType[]>('/grade_option');
+            const response = await http.get<GradeApiOptionType[]>('/grade_option');
 
             set({
               gradeOptions: response.data,

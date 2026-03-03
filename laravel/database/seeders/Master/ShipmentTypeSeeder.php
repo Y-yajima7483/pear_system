@@ -2,6 +2,7 @@
 
 namespace Database\Seeders\Master;
 
+use App\Enums\ShipmentTypeEnum;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -12,9 +13,11 @@ class ShipmentTypeSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('shipment_types')->insert([
-            ['id' => 1, 'name' => '直売', 'sort_order' => 1, 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 2, 'name' => 'JA出荷', 'sort_order' => 2, 'created_at' => now(), 'updated_at' => now()],
-        ]);
+        foreach (ShipmentTypeEnum::cases() as $case) {
+            DB::table('shipment_types')->updateOrInsert(
+                ['id' => $case->value],
+                ['name' => $case->label(), 'sort_order' => $case->value, 'created_at' => now(), 'updated_at' => now()]
+            );
+        }
     }
 }

@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
-import { Plus } from 'lucide-react';
+import { useState, useCallback, useEffect } from 'react';
 import YearMonthNavigation from '../components/YearMonthNavigation';
 import ShipmentRecordTable from '../components/ShipmentRecordTable';
-import Button from '@/components/ui/Button';
+import ShipmentRecordRegisterDialog from '../components/ShipmentRecordRegisterDialog';
 import useGetApi from '@/lib/api/useGetApi';
 import { commonApiHookOptions } from '@/lib/api/commonErrorHandlers';
-import { useShipmentTypeOptions, useShipmentTypeOptionStore } from '@/stores/useShipmentTypeOptionStore';
+import { SHIPMENT_TYPE_OPTIONS } from '@/constants/shipmentType';
 import type { GetShipmentRecordListApiResponse, MonthOptionType, ShipmentTypeType } from '@/types/shipmentRecord';
 
 export default function ShipmentRecordPage() {
@@ -20,18 +19,7 @@ export default function ShipmentRecordPage() {
 
   const { get, loading: getLoading } = useGetApi<GetShipmentRecordListApiResponse>(commonApiHookOptions);
 
-  // ストアから出荷タイプを取得
-  const fetchShipmentTypeOptions = useShipmentTypeOptionStore((state) => state.fetchShipmentTypeOptions);
-  const shipmentTypeOptions = useShipmentTypeOptions();
-
-  useEffect(() => {
-    fetchShipmentTypeOptions();
-  }, [fetchShipmentTypeOptions]);
-
-  const shipmentTypes: ShipmentTypeType[] = useMemo(
-    () => shipmentTypeOptions.map((opt) => ({ id: opt.value, name: opt.label })),
-    [shipmentTypeOptions]
-  );
+  const shipmentTypes: ShipmentTypeType[] = SHIPMENT_TYPE_OPTIONS.map((opt) => ({ id: opt.value, name: opt.label }));
 
   // データ取得
   const fetchData = useCallback(async (year: number, month: number | null) => {
@@ -96,10 +84,7 @@ export default function ShipmentRecordPage() {
         onMonthChange={setSelectedMonth}
         monthOptions={monthOptions}
         actionButton={
-          <Button type="button" className="text-sm py-2 px-2">
-            <Plus />
-            新規記録
-          </Button>
+          <ShipmentRecordRegisterDialog onRecordCreated={() => fetchData(selectedYear, selectedMonth)} />
         }
       />
 

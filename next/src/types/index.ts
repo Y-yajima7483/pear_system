@@ -10,6 +10,14 @@ export type ApiOptionType = OptionType<number>;
 export type ProductApiOptionType = {
 	variety: number;
 } & ApiOptionType;
+// 出荷種別用Selectオプション型（直売フラグ付き）
+export type ShipmentTypeApiOptionType = {
+	has_direct_sale_items: boolean;
+} & ApiOptionType;
+// 等級用Selectオプション型（販売/非販売区分付き）
+export type GradeApiOptionType = {
+	type: 'sales' | 'non_sales';
+} & ApiOptionType;
 // ログインユーザー情報
 export type UserDataType = {
 	id: number;
