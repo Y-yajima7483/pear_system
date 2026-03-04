@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name', 50)->unique()->comment('等級名');
             $table->enum('type', ['sales', 'non_sales'])->default('sales')->comment('区分（販売対象 / 非販売）');
+            $table->enum('shipment_scope', ['both', 'direct_only', 'ja_only'])->default('both')->comment('対象出荷種別（both: 両方 / direct_only: 直売のみ / ja_only: JAのみ）');
             $table->integer('sort_order')->default(0)->comment('表示順');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();

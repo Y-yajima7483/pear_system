@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import YearMonthNavigation from '../components/YearMonthNavigation';
-import ShipmentRecordTable from '../components/ShipmentRecordTable';
-import ShipmentRecordRegisterDialog from '../components/ShipmentRecordRegisterDialog';
+import YearMonthNavigation from './components/YearMonthNavigation';
+import ShipmentRecordTable from './components/ShipmentRecordTable';
+import ShipmentRecordRegisterDialog from './components/ShipmentRecordRegisterDialog';
 import useGetApi from '@/lib/api/useGetApi';
 import { commonApiHookOptions } from '@/lib/api/commonErrorHandlers';
 import { SHIPMENT_TYPE_OPTIONS } from '@/constants/shipmentType';

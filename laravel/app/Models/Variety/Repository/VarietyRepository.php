@@ -8,8 +8,10 @@ class VarietyRepository implements VarietyRepositoryInterface
 {
     public function getOption(): array
     {
-        $query = Variety::query();
-
-        return $query->select('id', 'name')->get()->toArray();
+        return Variety::query()
+            ->orderBy('display_order')
+            ->select('id', 'name')
+            ->get()
+            ->toArray();
     }
 }

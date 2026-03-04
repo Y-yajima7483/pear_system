@@ -10,16 +10,16 @@ import {
   useFieldArray,
   Controller,
 } from 'react-hook-form';
-import SelectBox from '@/components/input/SelectBox';
+import SelectBoxBase from '@/components/input/SelectBoxBase';
 import TextArea from '@/components/input/TextArea';
 import Button from '@/components/ui/Button';
+import { X } from 'lucide-react';
 import DirectSaleItems from './DirectSaleItems';
 import { useVarietyOptions } from '@/stores/useVarietyOptionStore';
 import { useGradeOptions } from '@/stores/useGradeOptionStore';
-import { SHIPMENT_TYPE_OPTIONS } from '@/constants/shipmentType';
+import { SHIPMENT_TYPE, SHIPMENT_TYPE_OPTIONS } from '@/constants/shipmentType';
 import type { OptionType, ShipmentTypeApiOptionType } from '@/types';
 import type { ShipmentRecordFormInputs } from '@/types/shipmentRecord';
-import { varietyEntryDefaultValues } from '@/types/shipmentRecord';
 
 interface ShipmentRecordFormProps {
   control: Control<ShipmentRecordFormInputs>;
@@ -59,31 +59,64 @@ function TabPanel({
     name: `tabs.${tabIndex}.varieties` as const,
   });
 
-  // 品種オプションをSelectBox用に変換
-  const varietySelectOptions: OptionType[] = useMemo(
-    () => varietyOptions.map((opt) => ({ label: opt.label, value: opt.value.toString() })),
-    [varietyOptions]
-  );
-
-  // 販売等級と非販売等級を分離
-  const salesGrades = useMemo(
-    () => gradeOptions.filter((g) => g.type === 'sales'),
-    [gradeOptions]
-  );
-  const nonSalesGrades = useMemo(
-    () => gradeOptions.filter((g) => g.type === 'non_sales'),
-    [gradeOptions]
-  );
+  // 品種セレクタの選択値
+  const [selectedVarietyId, setSelectedVarietyId] = useState<string>('');
 
   // 品種選択時の等級初期化
   const watchedVarieties = watch(`tabs.${tabIndex}.varieties`);
+
+  // 追加済み品種IDリスト（watchedVarietiesから算出）
+  const addedVarietyIds = useMemo(
+    () => (watchedVarieties ?? []).map((v) => v.variety_id).filter(Boolean),
+    [watchedVarieties]
+  );
+
+  // 品種セレクタ用オプション（追加済みを除外）
+  const varietySelectOptions: OptionType[] = useMemo(
+    () =>
+      varietyOptions
+        .filter((opt) => !addedVarietyIds.includes(opt.value.toString()))
+        .map((opt) => ({ label: opt.label, value: opt.value.toString() })),
+    [varietyOptions, addedVarietyIds]
+  );
+
+  // 品種IDから品種名を取得
+  const getVarietyName = (varietyId: string) =>
+    varietyOptions.find((v) => v.value.toString() === varietyId)?.label ?? '';
+
+  // 品種追加ハンドラー
+  const handleAddVariety = () => {
+    if (!selectedVarietyId) return;
+    append({ variety_id: selectedVarietyId, grades: {} });
+    setSelectedVarietyId('');
+  };
+
+  // 出荷種別に応じた等級フィルタリング
+  const filteredGrades = useMemo(() => {
+    return gradeOptions.filter((g) => {
+      if (shipmentType.value === SHIPMENT_TYPE.DIRECT) {
+        return g.shipment_scope === 'both' || g.shipment_scope === 'direct_only';
+      }
+      return g.shipment_scope === 'both' || g.shipment_scope === 'ja_only';
+    });
+  }, [gradeOptions, shipmentType.value]);
+
+  // 販売等級と非販売等級を分離
+  const salesGrades = useMemo(
+    () => filteredGrades.filter((g) => g.type === 'sales'),
+    [filteredGrades]
+  );
+  const nonSalesGrades = useMemo(
+    () => filteredGrades.filter((g) => g.type === 'non_sales'),
+    [filteredGrades]
+  );
   useEffect(() => {
     if (watchedVarieties) {
       watchedVarieties.forEach((variety, index) => {
         if (variety.variety_id) {
           const currentGrades = variety.grades || {};
           const updatedGrades = { ...currentGrades };
-          gradeOptions.forEach((grade) => {
+          filteredGrades.forEach((grade) => {
             const key = grade.value.toString();
             if (updatedGrades[key] === undefined) {
               updatedGrades[key] = 0;
@@ -95,7 +128,7 @@ function TabPanel({
         }
       });
     }
-  }, [watchedVarieties, gradeOptions, setValue, tabIndex]);
+  }, [watchedVarieties, filteredGrades, setValue, tabIndex]);
 
   // 品種ごとの小計計算
   const getSubtotal = (grades: Record<string, number>) => {
@@ -112,15 +145,27 @@ function TabPanel({
       ) : (
         /* 他タブ: 既存の等級テーブル */
         <>
-          {/* 品種追加 */}
-          <div className="flex justify-between items-center mb-4">
-            <h4 className="text-sm font-semibold">品種別出荷数</h4>
+          {/* セクション区切り */}
+          <div className="ds-section-divider">品種別出荷数</div>
+
+          {/* 品種追加行 */}
+          <div className="ds-variety-add-row">
+            <SelectBoxBase<ShipmentRecordFormInputs>
+              name={`tabs.${tabIndex}.varieties` as any}
+              inputLabel="品種を選択"
+              option={varietySelectOptions}
+              value={selectedVarietyId || null}
+              onChange={(val) => setSelectedVarietyId(val ?? '')}
+              disabledRemove
+            />
             <Button
               type="button"
-              onClick={() => append(varietyEntryDefaultValues)}
-              className="!px-4 !py-1.5 !text-xs"
+              onClick={handleAddVariety}
+              outline
+              disabled={!selectedVarietyId}
+              className="!px-4 !py-2 !text-sm whitespace-nowrap"
             >
-              品種を追加
+              + 品種を追加
             </Button>
           </div>
 
@@ -131,40 +176,33 @@ function TabPanel({
 
           {fields.length === 0 && (
             <div className="text-center text-gray-400 py-6 text-sm">
-              「品種を追加」ボタンから出荷する品種を追加してください
+              品種を選択して「品種を追加」ボタンを押してください
             </div>
           )}
 
           {fields.map((field, varietyIndex) => {
-            const selectedVarietyId = watch(`tabs.${tabIndex}.varieties.${varietyIndex}.variety_id`);
+            const varietyId = watch(`tabs.${tabIndex}.varieties.${varietyIndex}.variety_id`);
             const currentGrades = watch(`tabs.${tabIndex}.varieties.${varietyIndex}.grades`) || {};
 
             return (
-              <div key={field.id} className="border rounded-lg py-4 px-3 mb-3">
-                <div className="flex justify-between items-center mb-3">
-                  <div className="flex-1">
-                    <SelectBox
-                      control={control}
-                      name={`tabs.${tabIndex}.varieties.${varietyIndex}.variety_id` as const}
-                      inputLabel="品種を選択"
-                      option={varietySelectOptions}
-                      trigger={trigger}
-                      errorMessage={errors.tabs?.[tabIndex]?.varieties?.[varietyIndex]?.variety_id?.message}
-                    />
-                  </div>
-                  <Button
+              <div key={field.id} className="ds-variety-card">
+                {/* カードヘッダー */}
+                <div className="ds-variety-card__header">
+                  <span className="ds-variety-card__title">
+                    {getVarietyName(varietyId)}
+                  </span>
+                  <button
                     type="button"
+                    className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-md
+                      text-[var(--error)] border border-transparent hover:bg-[var(--error-bg)] transition-colors"
                     onClick={() => remove(varietyIndex)}
-                    color="alert"
-                    outline
-                    className="ml-2 !px-3 !py-1 !text-xs"
                   >
-                    削除
-                  </Button>
+                    <X size={14} /> 品種削除
+                  </button>
                 </div>
 
                 {/* 等級入力テーブル（品種選択後に表示） */}
-                {selectedVarietyId && gradeOptions.length > 0 && (
+                {varietyId && filteredGrades.length > 0 && (
                   <div className="shipment-grade-table-wrapper">
                     <table className="shipment-grade-table">
                       <thead>

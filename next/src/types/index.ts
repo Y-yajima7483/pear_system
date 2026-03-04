@@ -9,6 +9,9 @@ export type ApiOptionType = OptionType<number>;
 // 商品用Selectオプション型
 export type ProductApiOptionType = {
 	variety: number;
+	is_main: boolean;
+	is_shipping: boolean;
+	sku_suffix: string;
 } & ApiOptionType;
 // 出荷種別用Selectオプション型（直売フラグ付き）
 export type ShipmentTypeApiOptionType = {
@@ -17,6 +20,7 @@ export type ShipmentTypeApiOptionType = {
 // 等級用Selectオプション型（販売/非販売区分付き）
 export type GradeApiOptionType = {
 	type: 'sales' | 'non_sales';
+	shipment_scope: 'both' | 'direct_only' | 'ja_only';
 } & ApiOptionType;
 // ログインユーザー情報
 export type UserDataType = {

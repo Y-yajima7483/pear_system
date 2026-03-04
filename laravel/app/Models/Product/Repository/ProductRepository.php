@@ -12,8 +12,8 @@ class ProductRepository implements ProductRepositoryInterface
     public function getOption(): array
     {
         return Product::active()
-            ->orderBy('name')
-            ->get(['id', 'name', 'variety_id'])
+            ->orderBy('display_order')
+            ->get(['id', 'name', 'sku', 'variety_id', 'is_main', 'is_shipping'])
             ->toArray();
     }
 }

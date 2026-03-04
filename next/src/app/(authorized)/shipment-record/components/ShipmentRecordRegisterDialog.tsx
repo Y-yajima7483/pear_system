@@ -128,7 +128,7 @@ export default function ShipmentRecordRegisterDialog({ onRecordCreated }: Shipme
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="max-h-[80vh] min-w-3xl overflow-y-scroll p-0 max-w-2xl"
+        className="max-h-[80vh] min-w-4xl overflow-y-scroll p-0 max-w-4xl"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader className="sticky top-0 z-2 bg-background w-full p-4">

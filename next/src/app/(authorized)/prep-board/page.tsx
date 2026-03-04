@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { format, addDays } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import DateNavigation from '../components/DateNavigation';
-import PrepBoardMatrix from '../components/PrepBoardMatrix';
+import PrepBoardMatrix from './components/PrepBoardMatrix';
 import OrderRegisterDialog from '../components/OrderRegisterDialog';
 import useGetApi from '@/lib/api/useGetApi';
 import usePatchApi from '@/lib/api/usePatchApi';

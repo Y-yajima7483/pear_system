@@ -21,13 +21,13 @@ class ProductSeeder extends Seeder
         ];
 
         $productTypes = [
-            ['name' => '3キロ箱', 'sku_suffix' => '3KL', 'is_shipping' => 1, 'is_active' => 1],
-            ['name' => '5キロ箱大玉', 'sku_suffix' => '5KL', 'is_shipping' => 1, 'is_active' => 1],
-            ['name' => '10キロ箱大玉', 'sku_suffix' => '10KL', 'is_shipping' => 1, 'is_active' => 1],
-            ['name' => '5キロ箱中玉', 'sku_suffix' => '5KM', 'is_shipping' => 1, 'is_active' => 1],
-            ['name' => '10キロ箱中玉', 'sku_suffix' => '10KM', 'is_shipping' => 1, 'is_active' => 1],
-            ['name' => '袋', 'sku_suffix' => 'BAG', 'is_shipping' => 0, 'is_active' => 1],
-            ['name' => '訳あり袋', 'sku_suffix' => 'WBAG', 'is_shipping' => 0, 'is_active' => 1],
+            ['name' => '3キロ箱', 'sku_suffix' => '3KL', 'is_shipping' => 1, 'is_active' => 1, 'is_main' => 1, 'display_order' => 1],
+            ['name' => '5キロ箱大玉', 'sku_suffix' => '5KL', 'is_shipping' => 1, 'is_active' => 1, 'is_main' => 1, 'display_order' => 2],
+            ['name' => '5キロ箱中玉', 'sku_suffix' => '5KM', 'is_shipping' => 1, 'is_active' => 1, 'is_main' => 0, 'display_order' => 3],
+            ['name' => '10キロ箱大玉', 'sku_suffix' => '10KL', 'is_shipping' => 1, 'is_active' => 1, 'is_main' => 0, 'display_order' => 4],
+            ['name' => '10キロ箱中玉', 'sku_suffix' => '10KM', 'is_shipping' => 1, 'is_active' => 1, 'is_main' => 0, 'display_order' => 5],
+            ['name' => '訳あり袋', 'sku_suffix' => 'WBAG', 'is_shipping' => 0, 'is_active' => 1, 'is_main' => 1, 'display_order' => 6],
+            ['name' => '袋', 'sku_suffix' => 'BAG', 'is_shipping' => 0, 'is_active' => 1, 'is_main' => 1, 'display_order' => 7],
         ];
 
         $products = [];
@@ -41,6 +41,8 @@ class ProductSeeder extends Seeder
                     'price' => null, // 価格は後ほど手動で入力
                     'is_active' => $type['is_active'],
                     'is_shipping' => $type['is_shipping'],
+                    'is_main' => $type['is_main'],
+                    'display_order' => $type['display_order'],
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];

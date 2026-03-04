@@ -20,6 +20,7 @@ class GetGradeOptionService extends AbstractService
                 'value' => $item['id'],
                 'label' => $item['name'],
                 'type' => $item['type'],
+                'shipment_scope' => $item['shipment_scope'],
             ];
         }, $result);
     }

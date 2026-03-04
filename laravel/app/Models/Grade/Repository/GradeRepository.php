@@ -8,6 +8,6 @@ class GradeRepository implements GradeRepositoryInterface
 {
     public function getOption(): array
     {
-        return Grade::query()->orderBy('sort_order')->select('id', 'name', 'type')->get()->toArray();
+        return Grade::query()->orderBy('sort_order')->select('id', 'name', 'type', 'shipment_scope')->get()->toArray();
     }
 }

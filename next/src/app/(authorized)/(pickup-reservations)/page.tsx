@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import OrderRegisterDialog from "../components/OrderRegisterDialog";
-import OrderItemFortnightCalendar from "@/app/(authorized)/components/OrderItemFortnightCalendar";
+import OrderItemFortnightCalendar from "./components/OrderItemFortnightCalendar";
 import DateNavigation from "../components/DateNavigation";
 
 export default function PickupReservationsPage() {

@@ -102,5 +102,6 @@ export const useProductOptionStore = create<ProductOptionState>()(
 
 // Selector hooks for common use cases
 export const useProductOptions = () => useProductOptionStore((state) => state.productOptions);
+export const useMainProductOptions = () => useProductOptionStore((state) => state.productOptions.filter((p) => p.is_main));
 export const useProductOptionsLoading = () => useProductOptionStore((state) => state.isLoading);
 export const useProductOptionsError = () => useProductOptionStore((state) => state.error);

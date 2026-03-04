@@ -67,9 +67,9 @@ class GetPrepBoardService extends AbstractService
         return Variety::with(['products' => function ($query) use ($orderedProductIds) {
             $query->where('is_active', true)
                   ->whereIn('id', $orderedProductIds)
-                  ->orderBy('id', 'ASC');
+                  ->orderBy('display_order');
         }])
-        ->orderBy('id', 'ASC')
+        ->orderBy('display_order')
         ->get()
         ->map(function ($variety) {
             return [

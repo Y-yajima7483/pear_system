@@ -11,6 +11,7 @@ class Grade extends Model
     protected $fillable = [
         'name',
         'type',
+        'shipment_scope',
         'sort_order',
     ];
 }

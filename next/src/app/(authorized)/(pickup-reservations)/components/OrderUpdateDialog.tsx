@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import Button from "@/components/ui/Button";
-import OrderForm, { OrderFormInputs, ItemValueType } from './OrderForm';
+import OrderForm, { OrderFormInputs, ItemValueType } from '../../components/OrderForm';
 import usePutApi from '@/lib/api/usePutApi';
 import { commonApiHookOptions } from '@/lib/api/commonErrorHandlers';
 import { orderUpdateFormSchema } from '@/lib/validation/order';

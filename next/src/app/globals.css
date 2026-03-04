@@ -921,6 +921,15 @@ input[type="time"]::-webkit-clear-button {
   transform: none;
 }
 
+/* Outline Disabled State */
+.button-base.outline:disabled,
+.button-base.outline.disabled {
+  background: transparent;
+  border-color: var(--gray-400);
+  color: var(--gray-400);
+  opacity: 0.6;
+}
+
 /* Select Clear Button */
 .select-clear-btn {
   @apply flex items-center justify-center p-0 w-5 h-5 rounded hover:bg-gray-200 transition-colors;
@@ -2142,7 +2151,6 @@ input[type="time"]::-webkit-clear-button {
   background: #fff;
   box-shadow: var(--shadow-sm);
   margin-bottom: 16px;
-  overflow: hidden;
 }
 
 .ds-variety-card__header {
@@ -2152,6 +2160,7 @@ input[type="time"]::-webkit-clear-button {
   padding: 12px 16px;
   background: var(--pear-card-bg);
   border-bottom: 1px solid var(--pear-border);
+  border-radius: var(--radius) var(--radius) 0 0;
 }
 
 .ds-variety-card__title {
@@ -2170,7 +2179,7 @@ input[type="time"]::-webkit-clear-button {
 /* カラムヘッダー */
 .ds-column-headers {
   display: grid;
-  grid-template-columns: 130px 1fr 1fr 36px;
+  grid-template-columns: 180px 1fr 1fr 36px;
   gap: 8px;
   padding: 8px 16px;
   font-size: 11px;
@@ -2190,7 +2199,7 @@ input[type="time"]::-webkit-clear-button {
 /* 商品行 */
 .ds-product-row {
   display: grid;
-  grid-template-columns: 130px 1fr 1fr 36px;
+  grid-template-columns: 180px 1fr 1fr 36px;
   gap: 8px;
   align-items: center;
   padding: 10px 16px;
@@ -2260,6 +2269,25 @@ input[type="time"]::-webkit-clear-button {
   border-color: var(--error-light);
 }
 
+.ds-non-main-add-row {
+  display: grid;
+  grid-template-columns: 180px 1fr 1fr 36px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px dashed var(--border-light);
+}
+
+.ds-non-main-add-row > :first-child {
+  grid-column: 1 / 2;
+}
+
+.ds-non-main-add-btn {
+  padding: 6px 16px !important;
+  font-size: 0.8rem !important;
+  white-space: nowrap;
+}
+
 /* 備考エリア */
 .shipment-notes-area {
   @apply mt-6;
@@ -2280,13 +2308,13 @@ input[type="time"]::-webkit-clear-button {
 
   /* 直売品種カード レスポンシブ */
   .ds-product-row {
-    grid-template-columns: 100px 1fr 1fr 32px;
+    grid-template-columns: 140px 1fr 1fr 32px;
     gap: 6px;
     padding: 8px 12px;
   }
 
   .ds-column-headers {
-    grid-template-columns: 100px 1fr 1fr 32px;
+    grid-template-columns: 140px 1fr 1fr 32px;
     padding: 8px 12px;
   }
 

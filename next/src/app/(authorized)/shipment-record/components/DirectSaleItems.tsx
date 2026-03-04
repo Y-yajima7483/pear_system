@@ -29,6 +29,16 @@ export default function DirectSaleItems({ control, errors, trigger }: Props) {
   const [addedVarietyIds, setAddedVarietyIds] = useState<number[]>([]);
   // 品種セレクタの選択値
   const [selectedVarietyId, setSelectedVarietyId] = useState<string>('');
+  // 非メイン商品セレクタの選択値（品種IDごと）
+  const [selectedNonMainProductIds, setSelectedNonMainProductIds] = useState<Record<number, string>>({});
+
+  // sku_suffixから初期玉数リストを取得（is_shipping商品のみ複数行）
+  const getInitialFruitQuantities = useCallback((skuSuffix: string, isShipping: boolean): number[] => {
+    if (!isShipping) return [0];
+    if (skuSuffix.startsWith('5K')) return [10, 9, 8, 7];
+    if (skuSuffix.startsWith('3K')) return [5, 6];
+    return [0];
+  }, []);
 
   // 品種セレクタ用オプション（追加済みを除外）
   const varietySelectOptions: OptionType[] = useMemo(
@@ -39,24 +49,56 @@ export default function DirectSaleItems({ control, errors, trigger }: Props) {
     [varietyOptions, addedVarietyIds]
   );
 
+  // 品種ごとの未追加・非メイン商品オプション
+  const nonMainProductOptionsMap = useMemo(() => {
+    const addedProductIds = new Set(fields.map((f) => f.product_id));
+    const map = new Map<number, OptionType[]>();
+    addedVarietyIds.forEach((varietyId) => {
+      const opts = productOptions
+        .filter((p) => p.variety === varietyId && !p.is_main && !addedProductIds.has(p.value.toString()))
+        .map((p) => ({ label: p.label, value: p.value.toString() }));
+      map.set(varietyId, opts);
+    });
+    return map;
+  }, [productOptions, fields, addedVarietyIds]);
+
   // 品種追加
   const handleAddVariety = useCallback(() => {
     if (!selectedVarietyId) return;
     const varietyId = parseInt(selectedVarietyId);
 
     // 該当品種の商品一覧を取得してフィールドに追加
-    const productsForVariety = productOptions.filter((p) => p.variety === varietyId);
+    const productsForVariety = productOptions.filter((p) => p.variety === varietyId && p.is_main);
     productsForVariety.forEach((product) => {
-      append({
-        product_id: product.value.toString(),
-        fruit_quantity: 0,
-        box_quantity: 0,
+      const initialQuantities = getInitialFruitQuantities(product.sku_suffix, product.is_shipping);
+      initialQuantities.forEach((qty) => {
+        append({
+          product_id: product.value.toString(),
+          fruit_quantity: qty,
+          box_quantity: 0,
+        });
       });
     });
 
     setAddedVarietyIds((prev) => [...prev, varietyId]);
     setSelectedVarietyId('');
-  }, [selectedVarietyId, productOptions, append]);
+  }, [selectedVarietyId, productOptions, append, getInitialFruitQuantities]);
+
+  // 非メイン商品追加
+  const handleAddNonMainProduct = useCallback(
+    (varietyId: number, productId: string) => {
+      if (!productId) return;
+      const product = productOptions.find((p) => p.value.toString() === productId);
+      const initialQuantities = product
+        ? getInitialFruitQuantities(product.sku_suffix, product.is_shipping)
+        : [0];
+      initialQuantities.forEach((qty) => {
+        append({ product_id: productId, fruit_quantity: qty, box_quantity: 0 });
+      });
+      setSelectedNonMainProductIds((prev) => ({ ...prev, [varietyId]: '' }));
+    },
+    [append, productOptions, getInitialFruitQuantities]
+  );
 
   // 品種削除
   const handleRemoveVariety = useCallback(
@@ -74,6 +116,11 @@ export default function DirectSaleItems({ control, errors, trigger }: Props) {
 
       indicesToRemove.forEach((index) => remove(index));
       setAddedVarietyIds((prev) => prev.filter((id) => id !== varietyId));
+      setSelectedNonMainProductIds((prev) => {
+        const next = { ...prev };
+        delete next[varietyId];
+        return next;
+      });
     },
     [productOptions, fields, remove]
   );
@@ -183,7 +230,6 @@ export default function DirectSaleItems({ control, errors, trigger }: Props) {
             {/* カードヘッダー */}
             <div className="ds-variety-card__header">
               <span className="ds-variety-card__title">
-                <span style={{ fontSize: 18 }}>&#x1F350;</span>
                 {getVarietyName(varietyId)}
               </span>
               <button
@@ -267,6 +313,31 @@ export default function DirectSaleItems({ control, errors, trigger }: Props) {
                 </div>
               ))}
             </div>
+
+            {/* 非メイン商品追加 */}
+            {(nonMainProductOptionsMap.get(varietyId) ?? []).length > 0 && (
+              <div className="ds-non-main-add-row">
+                <SelectBoxBase<ShipmentRecordFormInputs>
+                  name={'direct_sale_items' as any}
+                  inputLabel="商品を追加"
+                  option={nonMainProductOptionsMap.get(varietyId) ?? []}
+                  value={selectedNonMainProductIds[varietyId] || null}
+                  onChange={(val) =>
+                    setSelectedNonMainProductIds((prev) => ({ ...prev, [varietyId]: val ?? '' }))
+                  }
+                  disabledRemove
+                />
+                <Button
+                  type="button"
+                  outline
+                  onClick={() => handleAddNonMainProduct(varietyId, selectedNonMainProductIds[varietyId])}
+                  disabled={!selectedNonMainProductIds[varietyId]}
+                  className="ds-non-main-add-btn"
+                >
+                  <Plus size={14} /> 追加
+                </Button>
+              </div>
+            )}
           </div>
         );
       })}

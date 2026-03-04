@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('varieties', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100)->unique()->comment('品種名');
+            $table->unsignedSmallInteger('display_order')->comment('表示順')->default(0);
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
         });

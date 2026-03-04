@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property bool $is_shipping
  * @property bool $is_active
  * @property int|null $variety_id
+ * @property int $display_order
  * @property \Illuminate\Support\Carbon $created_at
  * @property \Illuminate\Support\Carbon $updated_at
  *
@@ -36,6 +37,7 @@ class Product extends Model
         'is_shipping',
         'is_active',
         'variety_id',
+        'display_order',
     ];
 
     /** 型キャスト */
@@ -43,6 +45,7 @@ class Product extends Model
         'price' => 'integer',
         'is_shipping' => 'boolean',
         'is_active' => 'boolean',
+        'display_order' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

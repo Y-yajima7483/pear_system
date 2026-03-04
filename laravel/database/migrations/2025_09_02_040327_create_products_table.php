@@ -15,6 +15,8 @@ return new class extends Migration
             $table->integer('price')->nullable()->comment('価格');
             $table->boolean('is_shipping')->comment('配送可能商品フラグ')->default(false);
             $table->boolean('is_active')->comment('販売可能商品フラグ')->default(true);
+            $table->boolean('is_main')->comment('主要商品フラグ')->default(false);
+            $table->unsignedSmallInteger('display_order')->comment('表示順')->default(0);
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
         });

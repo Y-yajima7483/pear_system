@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * @property int $id
  * @property string $name
+ * @property int $display_order
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Product[] $products
@@ -24,6 +25,7 @@ class Variety extends Model
 
     protected $fillable = [
         'name',
+        'display_order',
     ];
 
     /**
@@ -36,6 +38,7 @@ class Variety extends Model
      * キャスト（明示しておくと安心）
      */
     protected $casts = [
+        'display_order' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
