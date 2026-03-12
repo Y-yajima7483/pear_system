@@ -2,11 +2,14 @@
 
 namespace App\Models\ShipmentRecordDetail;
 
+use App\Models\DirectSaleProduct\DirectSaleProduct;
+use App\Models\Grade\Grade;
 use App\Models\ShipmentRecord\ShipmentRecord;
 use App\Models\ShipmentType\ShipmentType;
 use App\Models\Variety\Variety;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ShipmentRecordDetail extends Model
 {
@@ -37,5 +40,15 @@ class ShipmentRecordDetail extends Model
     public function variety(): BelongsTo
     {
         return $this->belongsTo(Variety::class);
+    }
+
+    public function grade(): BelongsTo
+    {
+        return $this->belongsTo(Grade::class);
+    }
+
+    public function directSaleProducts(): HasMany
+    {
+        return $this->hasMany(DirectSaleProduct::class);
     }
 }

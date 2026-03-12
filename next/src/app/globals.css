@@ -2574,3 +2574,34 @@ input[type="time"]::-webkit-clear-button {
     justify-content: center;
   }
 }
+
+/* ========================================
+   JA出荷グリッド
+   ======================================== */
+
+.ja-grid-table {
+  @apply w-full;
+}
+
+.ja-grid-date-header {
+  @apply text-left;
+  min-width: 60px !important;
+  width: 70px !important;
+}
+
+.ja-grid-date-cell {
+  @apply text-left text-xs;
+  color: var(--text-secondary);
+  min-width: 60px !important;
+  width: 70px !important;
+  white-space: nowrap;
+}
+
+.ja-grid-total-row {
+  border-top: 2px solid var(--pear-border);
+}
+
+.ja-grid-total-row td {
+  @apply pt-3 pb-2;
+  border-bottom: none;
+}

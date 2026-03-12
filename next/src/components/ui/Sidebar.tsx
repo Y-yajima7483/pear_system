@@ -164,16 +164,9 @@ export default function Sidebar({ className = '' }: SidebarProps) {
     >
       {/* ヘッダー */}
       <div className="sidebar-desktop-header">
-        {isExpanded ? (
+        {isExpanded && (
           <div className="flex items-center gap-3">
-            <div className="pear-logo-small">
-              <span className="text-sm">🍐</span>
-            </div>
             <span className="text-base font-semibold pear-text-gradient whitespace-nowrap">PEAR System</span>
-          </div>
-        ) : (
-          <div className="pear-logo-small mx-auto">
-            <span className="text-sm">🍐</span>
           </div>
         )}
 

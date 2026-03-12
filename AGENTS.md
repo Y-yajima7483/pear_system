@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 ## Project Overview
 
@@ -12,7 +12,7 @@ This is a Docker-based order management system (PEAR System) with:
 
 The application appears to be an order/reservation/shipment management system with product varieties and pickup scheduling functionality.
 
-## Claude Code Operational Rules
+## Codex Operational Rules
 
 - When seeking user decisions, always use the `AskUserQuestion` tool
 - Installing modules or packages is prohibited for security reasons

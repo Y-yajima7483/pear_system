@@ -1,15 +1,19 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Truck } from 'lucide-react';
 import YearMonthNavigation from './components/YearMonthNavigation';
 import ShipmentRecordTable from './components/ShipmentRecordTable';
 import ShipmentRecordRegisterDialog from './components/ShipmentRecordRegisterDialog';
+import Button from '@/components/ui/Button';
 import useGetApi from '@/lib/api/useGetApi';
 import { commonApiHookOptions } from '@/lib/api/commonErrorHandlers';
 import { SHIPMENT_TYPE_OPTIONS } from '@/constants/shipmentType';
 import type { GetShipmentRecordListApiResponse, MonthOptionType, ShipmentTypeType } from '@/types/shipmentRecord';
 
 export default function ShipmentRecordPage() {
+  const router = useRouter();
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
@@ -84,7 +88,18 @@ export default function ShipmentRecordPage() {
         onMonthChange={setSelectedMonth}
         monthOptions={monthOptions}
         actionButton={
-          <ShipmentRecordRegisterDialog onRecordCreated={() => fetchData(selectedYear, selectedMonth)} />
+          <div className="flex items-center gap-2">
+            <ShipmentRecordRegisterDialog onRecordCreated={() => fetchData(selectedYear, selectedMonth)} />
+            <Button
+              type="button"
+              onClick={() => router.push('/shipment-record/ja-registration')}
+              className="text-sm py-2 px-2"
+              color="border"
+            >
+              <Truck size={16} />
+              JA出荷登録
+            </Button>
+          </div>
         }
       />
 

@@ -1,23 +1,23 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
-import { Control, FieldErrors, UseFormTrigger, useFieldArray, Controller } from 'react-hook-form';
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { Control, FieldErrors, FieldPath, useFieldArray, Controller } from 'react-hook-form';
 import { X, Plus } from 'lucide-react';
 import NumberStepperBase from '@/components/input/NumberStepperBase';
 import SelectBoxBase from '@/components/input/SelectBoxBase';
 import Button from '@/components/ui/Button';
 import { useVarietyOptions } from '@/stores/useVarietyOptionStore';
 import { useProductOptions } from '@/stores/useProductOptionStore';
-import type { OptionType } from '@/types';
-import type { ShipmentRecordFormInputs } from '@/types/shipmentRecord';
+import { SKU_SUFFIX } from '@/constants/product';
+import type { OptionType, ProductApiOptionType } from '@/types';
+import type { DirectSaleFormInputs } from '@/types/shipmentRecord';
 
 interface Props {
-  control: Control<ShipmentRecordFormInputs>;
-  errors: FieldErrors<ShipmentRecordFormInputs>;
-  trigger: UseFormTrigger<ShipmentRecordFormInputs>;
+  control: Control<DirectSaleFormInputs>;
+  errors: FieldErrors<DirectSaleFormInputs>;
 }
 
-export default function DirectSaleItems({ control, errors, trigger }: Props) {
+export default function DirectSaleItems({ control, errors }: Props) {
   const varietyOptions = useVarietyOptions();
   const productOptions = useProductOptions();
   const { fields, append, remove } = useFieldArray({
@@ -25,8 +25,6 @@ export default function DirectSaleItems({ control, errors, trigger }: Props) {
     name: 'direct_sale_items',
   });
 
-  // 追加済み品種IDリスト
-  const [addedVarietyIds, setAddedVarietyIds] = useState<number[]>([]);
   // 品種セレクタの選択値
   const [selectedVarietyId, setSelectedVarietyId] = useState<string>('');
   // 非メイン商品セレクタの選択値（品種IDごと）
@@ -35,10 +33,66 @@ export default function DirectSaleItems({ control, errors, trigger }: Props) {
   // sku_suffixから初期玉数リストを取得（is_shipping商品のみ複数行）
   const getInitialFruitQuantities = useCallback((skuSuffix: string, isShipping: boolean): number[] => {
     if (!isShipping) return [0];
-    if (skuSuffix.startsWith('5K')) return [10, 9, 8, 7];
-    if (skuSuffix.startsWith('3K')) return [5, 6];
+    if (skuSuffix === SKU_SUFFIX.FIVE_KG_L || skuSuffix === SKU_SUFFIX.FIVE_KG_M) return [10, 9, 8, 7];
+    if (skuSuffix === SKU_SUFFIX.THREE_KG_L) return [5, 6];
     return [0];
   }, []);
+
+  const productById = useMemo(
+    () => new Map(productOptions.map((product) => [product.value.toString(), product])),
+    [productOptions]
+  );
+
+  const varietyNameById = useMemo(
+    () => new Map(varietyOptions.map((variety) => [variety.value, variety.label])),
+    [varietyOptions]
+  );
+
+  const productsByVariety = useMemo(() => {
+    const map = new Map<number, ProductApiOptionType[]>();
+
+    productOptions.forEach((product) => {
+      const products = map.get(product.variety);
+      if (products) {
+        products.push(product);
+        return;
+      }
+
+      map.set(product.variety, [product]);
+    });
+
+    return map;
+  }, [productOptions]);
+
+  const addedVarietyIds = useMemo(() => {
+    const ids: number[] = [];
+    const seen = new Set<number>();
+
+    fields.forEach((field) => {
+      const varietyId = productById.get(field.product_id)?.variety;
+      if (varietyId === undefined || seen.has(varietyId)) {
+        return;
+      }
+
+      seen.add(varietyId);
+      ids.push(varietyId);
+    });
+
+    return ids;
+  }, [fields, productById]);
+
+  useEffect(() => {
+    setSelectedNonMainProductIds((prev) => {
+      const activeVarietyIds = new Set(addedVarietyIds);
+      const nextEntries = Object.entries(prev).filter(([varietyId]) => activeVarietyIds.has(Number(varietyId)));
+
+      if (nextEntries.length === Object.keys(prev).length) {
+        return prev;
+      }
+
+      return Object.fromEntries(nextEntries);
+    });
+  }, [addedVarietyIds]);
 
   // 品種セレクタ用オプション（追加済みを除外）
   const varietySelectOptions: OptionType[] = useMemo(
@@ -53,22 +107,24 @@ export default function DirectSaleItems({ control, errors, trigger }: Props) {
   const nonMainProductOptionsMap = useMemo(() => {
     const addedProductIds = new Set(fields.map((f) => f.product_id));
     const map = new Map<number, OptionType[]>();
+
     addedVarietyIds.forEach((varietyId) => {
-      const opts = productOptions
-        .filter((p) => p.variety === varietyId && !p.is_main && !addedProductIds.has(p.value.toString()))
+      const opts = (productsByVariety.get(varietyId) ?? [])
+        .filter((p) => !p.is_main && !addedProductIds.has(p.value.toString()))
         .map((p) => ({ label: p.label, value: p.value.toString() }));
       map.set(varietyId, opts);
     });
+
     return map;
-  }, [productOptions, fields, addedVarietyIds]);
+  }, [productsByVariety, fields, addedVarietyIds]);
 
   // 品種追加
   const handleAddVariety = useCallback(() => {
     if (!selectedVarietyId) return;
-    const varietyId = parseInt(selectedVarietyId);
+    const varietyId = Number(selectedVarietyId);
 
     // 該当品種の商品一覧を取得してフィールドに追加
-    const productsForVariety = productOptions.filter((p) => p.variety === varietyId && p.is_main);
+    const productsForVariety = (productsByVariety.get(varietyId) ?? []).filter((product) => product.is_main);
     productsForVariety.forEach((product) => {
       const initialQuantities = getInitialFruitQuantities(product.sku_suffix, product.is_shipping);
       initialQuantities.forEach((qty) => {
@@ -80,15 +136,14 @@ export default function DirectSaleItems({ control, errors, trigger }: Props) {
       });
     });
 
-    setAddedVarietyIds((prev) => [...prev, varietyId]);
     setSelectedVarietyId('');
-  }, [selectedVarietyId, productOptions, append, getInitialFruitQuantities]);
+  }, [selectedVarietyId, productsByVariety, append, getInitialFruitQuantities]);
 
   // 非メイン商品追加
   const handleAddNonMainProduct = useCallback(
     (varietyId: number, productId: string) => {
       if (!productId) return;
-      const product = productOptions.find((p) => p.value.toString() === productId);
+      const product = productById.get(productId);
       const initialQuantities = product
         ? getInitialFruitQuantities(product.sku_suffix, product.is_shipping)
         : [0];
@@ -97,15 +152,14 @@ export default function DirectSaleItems({ control, errors, trigger }: Props) {
       });
       setSelectedNonMainProductIds((prev) => ({ ...prev, [varietyId]: '' }));
     },
-    [append, productOptions, getInitialFruitQuantities]
+    [append, productById, getInitialFruitQuantities]
   );
 
   // 品種削除
   const handleRemoveVariety = useCallback(
     (varietyId: number) => {
-      // 該当品種の商品のproduct_idを取得
       const productIdsForVariety = new Set(
-        productOptions.filter((p) => p.variety === varietyId).map((p) => p.value.toString())
+        (productsByVariety.get(varietyId) ?? []).map((product) => product.value.toString())
       );
 
       // fieldsの中から該当商品のインデックスを降順で取得して削除
@@ -115,20 +169,13 @@ export default function DirectSaleItems({ control, errors, trigger }: Props) {
         .reverse();
 
       indicesToRemove.forEach((index) => remove(index));
-      setAddedVarietyIds((prev) => prev.filter((id) => id !== varietyId));
       setSelectedNonMainProductIds((prev) => {
         const next = { ...prev };
         delete next[varietyId];
         return next;
       });
     },
-    [productOptions, fields, remove]
-  );
-
-  // 品種IDから品種名を取得
-  const getVarietyName = useCallback(
-    (varietyId: number) => varietyOptions.find((v) => v.value === varietyId)?.label ?? '',
-    [varietyOptions]
+    [productsByVariety, fields, remove]
   );
 
   // product_id → 商品名のマップ
@@ -141,33 +188,41 @@ export default function DirectSaleItems({ control, errors, trigger }: Props) {
   type ProductGroup = {
     productId: string;
     productName: string;
-    rows: { fieldIndex: number }[];
+    rows: { fieldIndex: number; fieldId: string }[];
   };
 
   const varietyProductGroupsMap = useMemo(() => {
-    const map = new Map<number, ProductGroup[]>();
-    const productVarietyMap = new Map(productOptions.map((p) => [p.value.toString(), p.variety]));
+    const map = new Map<number, Map<string, ProductGroup>>();
 
     fields.forEach((field, index) => {
-      const varietyId = productVarietyMap.get(field.product_id);
-      if (varietyId === undefined) return;
-      if (!map.has(varietyId)) map.set(varietyId, []);
-
-      const groups = map.get(varietyId)!;
-      const existingGroup = groups.find((g) => g.productId === field.product_id);
-      if (existingGroup) {
-        existingGroup.rows.push({ fieldIndex: index });
-      } else {
-        groups.push({
-          productId: field.product_id,
-          productName: productNameMap.get(field.product_id) ?? '',
-          rows: [{ fieldIndex: index }],
-        });
+      const product = productById.get(field.product_id);
+      if (!product) {
+        return;
       }
+
+      let groups = map.get(product.variety);
+      if (!groups) {
+        groups = new Map<string, ProductGroup>();
+        map.set(product.variety, groups);
+      }
+
+      const existingGroup = groups.get(field.product_id);
+      if (existingGroup) {
+        existingGroup.rows.push({ fieldIndex: index, fieldId: field.id });
+        return;
+      }
+
+      groups.set(field.product_id, {
+        productId: field.product_id,
+        productName: productNameMap.get(field.product_id) ?? '',
+        rows: [{ fieldIndex: index, fieldId: field.id }],
+      });
     });
 
-    return map;
-  }, [fields, productOptions, productNameMap]);
+    return new Map(
+      Array.from(map.entries()).map(([varietyId, groups]) => [varietyId, Array.from(groups.values())])
+    );
+  }, [fields, productById, productNameMap]);
 
   // 行追加ハンドラー
   const handleAddRow = useCallback(
@@ -196,8 +251,8 @@ export default function DirectSaleItems({ control, errors, trigger }: Props) {
 
       {/* 品種追加行 */}
       <div className="ds-variety-add-row">
-        <SelectBoxBase<ShipmentRecordFormInputs>
-          name={'direct_sale_items' as any}
+        <SelectBoxBase<DirectSaleFormInputs>
+          name={'direct_sale_items'}
           inputLabel="品種を選択"
           option={varietySelectOptions}
           value={selectedVarietyId || null}
@@ -215,6 +270,13 @@ export default function DirectSaleItems({ control, errors, trigger }: Props) {
         </Button>
       </div>
 
+      {/* 配列レベルエラー */}
+      {(errors.direct_sale_items?.root?.message || errors.direct_sale_items?.message) && (
+        <p className="text-sm text-[var(--error)] mt-2">
+          {errors.direct_sale_items?.root?.message || errors.direct_sale_items?.message}
+        </p>
+      )}
+
       {/* 品種カード */}
       {addedVarietyIds.length === 0 && (
         <div className="text-center text-gray-400 py-6 text-sm">
@@ -230,7 +292,7 @@ export default function DirectSaleItems({ control, errors, trigger }: Props) {
             {/* カードヘッダー */}
             <div className="ds-variety-card__header">
               <span className="ds-variety-card__title">
-                {getVarietyName(varietyId)}
+                {varietyNameById.get(varietyId) ?? ''}
               </span>
               <button
                 type="button"
@@ -255,7 +317,7 @@ export default function DirectSaleItems({ control, errors, trigger }: Props) {
               {productGroups.map((group) => (
                 <div key={group.productId} className="ds-product-group">
                   {group.rows.map((row, rowIdx) => (
-                    <div key={row.fieldIndex} className="ds-product-row">
+                    <div key={row.fieldId} className="ds-product-row">
                       <span className="ds-product-name">
                         {rowIdx === 0 ? group.productName : ''}
                       </span>
@@ -265,10 +327,11 @@ export default function DirectSaleItems({ control, errors, trigger }: Props) {
                           control={control}
                           render={({ field: f }) => (
                             <NumberStepperBase
-                              name={`direct_sale_items.${row.fieldIndex}.fruit_quantity` as any}
+                              name={`direct_sale_items.${row.fieldIndex}.fruit_quantity` as FieldPath<DirectSaleFormInputs>}
                               value={f.value ?? 0}
                               onChange={f.onChange}
                               min={0}
+                              errorMessage={errors.direct_sale_items?.[row.fieldIndex]?.fruit_quantity?.message}
                             />
                           )}
                         />
@@ -279,10 +342,11 @@ export default function DirectSaleItems({ control, errors, trigger }: Props) {
                           control={control}
                           render={({ field: f }) => (
                             <NumberStepperBase
-                              name={`direct_sale_items.${row.fieldIndex}.box_quantity` as any}
+                              name={`direct_sale_items.${row.fieldIndex}.box_quantity` as FieldPath<DirectSaleFormInputs>}
                               value={f.value ?? 0}
                               onChange={f.onChange}
                               min={0}
+                              errorMessage={errors.direct_sale_items?.[row.fieldIndex]?.box_quantity?.message}
                             />
                           )}
                         />
@@ -317,8 +381,8 @@ export default function DirectSaleItems({ control, errors, trigger }: Props) {
             {/* 非メイン商品追加 */}
             {(nonMainProductOptionsMap.get(varietyId) ?? []).length > 0 && (
               <div className="ds-non-main-add-row">
-                <SelectBoxBase<ShipmentRecordFormInputs>
-                  name={'direct_sale_items' as any}
+                <SelectBoxBase<DirectSaleFormInputs>
+                  name={'direct_sale_items'}
                   inputLabel="商品を追加"
                   option={nonMainProductOptionsMap.get(varietyId) ?? []}
                   value={selectedNonMainProductIds[varietyId] || null}

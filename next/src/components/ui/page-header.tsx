@@ -10,11 +10,6 @@ export default function PageHeader({ title, action }: PageHeaderProps) {
     <header className="page-header">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3.5">
-          {/* Pear Logo */}
-          <div className="pear-logo">
-            <div className="pear-logo-stem" />
-            <span className="text-lg mt-1">🍐</span>
-          </div>
           <div>
             <h1 className="page-header-title">
               PEAR System

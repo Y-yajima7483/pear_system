@@ -9,6 +9,7 @@
 # IDE and Editor
 .vscode/
 .claude/
+.agents/
 .idea/
 private/
 plans/

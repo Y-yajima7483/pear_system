@@ -10,7 +10,10 @@ use App\Http\Controllers\PrepBoard\GetPrepBoardController;
 use App\Http\Controllers\PrepBoard\UpdateOrderItemPreparedController;
 use App\Http\Controllers\Product\GetProductOptionController;
 use App\Http\Controllers\Grade\GetGradeOptionController;
+use App\Http\Controllers\ShipmentRecord\GetJaShipmentDataController;
 use App\Http\Controllers\ShipmentRecord\GetShipmentRecordListController;
+use App\Http\Controllers\ShipmentRecord\RegisterDirectSaleController;
+use App\Http\Controllers\ShipmentRecord\RegisterJaShipmentController;
 use App\Http\Controllers\Variety\GetVarietyOpionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -65,4 +68,10 @@ Route::middleware('auth:sanctum')->group(function () {
     /* 出荷記録API */
     // 出荷記録一覧取得API
     Route::get('/shipment-record', GetShipmentRecordListController::class)->name('shipment-record.list');
+    // 直売出荷記録登録API
+    Route::post('/shipment-record/direct-sale', RegisterDirectSaleController::class)->name('shipment-record.direct-sale.register');
+    // JA出荷データ取得API
+    Route::get('/shipment-record/ja', GetJaShipmentDataController::class)->name('shipment-record.ja.get');
+    // JA出荷一括登録API
+    Route::post('/shipment-record/ja', RegisterJaShipmentController::class)->name('shipment-record.ja.register');
 });

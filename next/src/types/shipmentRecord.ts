@@ -31,7 +31,7 @@ export type MonthOptionType = {
   value: number;
 };
 
-// --- 登録フォーム用型定義 ---
+// --- 直売登録フォーム用型定義 ---
 
 // 品種ごとの等級入力
 export interface ShipmentVarietyEntry {
@@ -46,17 +46,10 @@ export interface DirectSaleItemEntry {
   box_quantity: number;
 }
 
-// 出荷タイプ別タブデータ
-export interface ShipmentTypeTabData {
-  shipment_type_id: number;
-  varieties: ShipmentVarietyEntry[];
-}
-
-// 登録フォーム入力型
-export interface ShipmentRecordFormInputs {
+// 直売登録フォーム入力型
+export interface DirectSaleFormInputs {
   record_date: string | Date;
   notes: string;
-  tabs: ShipmentTypeTabData[];
   direct_sale_items: DirectSaleItemEntry[];
 }
 
@@ -72,3 +65,48 @@ export const directSaleItemDefaultValues: DirectSaleItemEntry = {
   fruit_quantity: 0,
   box_quantity: 0,
 };
+
+// --- JA出荷登録用型定義 ---
+
+// JA等級型
+export type JaGradeType = {
+  id: number;
+  name: string;
+};
+
+// JA既存データ取得APIレスポンス型
+export type GetJaShipmentDataApiResponse = {
+  grades: JaGradeType[];
+  entries: Record<string, Record<string, number>>; // date -> gradeId -> quantity
+};
+
+// JA出荷グリッド1日分の入力
+export interface JaGridEntry {
+  record_date: string;
+  grades: Record<string, number>; // gradeId -> quantity
+}
+
+// JA出荷登録リクエスト型
+export interface JaShipmentRegisterRequest {
+  variety_id: number;
+  entries: {
+    record_date: string;
+    grades: { grade_id: number; quantity: number }[];
+  }[];
+}
+
+// --- 後方互換 (既存の型名を維持) ---
+
+// 出荷タイプ別タブデータ (後方互換)
+export interface ShipmentTypeTabData {
+  shipment_type_id: number;
+  varieties: ShipmentVarietyEntry[];
+}
+
+// 登録フォーム入力型 (後方互換)
+export interface ShipmentRecordFormInputs {
+  record_date: string | Date;
+  notes: string;
+  tabs: ShipmentTypeTabData[];
+  direct_sale_items: DirectSaleItemEntry[];
+}

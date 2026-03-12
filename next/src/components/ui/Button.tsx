@@ -6,14 +6,16 @@ interface Props {
 	outline?: boolean;
 	disabled? : boolean;
 	className?: string;
+	form?: string;
 }
 
-export default function Button({ onClick, children, type="button", color="primary", outline=false, disabled=false, className="" }: Props) {
+export default function Button({ onClick, children, type="button", color="primary", outline=false, disabled=false, className="", form }: Props) {
   return (
 		<button
 			type={type}
 			onClick={onClick}
 			disabled={disabled}
+			form={form}
 			className={`button-base group ${color} ${disabled ? "disabled" : ""} ${outline ? "outline" : ""} ${className}`}
 			>
 			{children}

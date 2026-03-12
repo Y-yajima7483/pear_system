@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, Resolver } from 'react-hook-form';
 import { format } from 'date-fns';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
@@ -20,43 +20,35 @@ import DatePicker from '@/components/input/DatePicker';
 import ShipmentRecordForm from './ShipmentRecordForm';
 import usePostApi from '@/lib/api/usePostApi';
 import { commonApiHookOptions } from '@/lib/api/commonErrorHandlers';
-import { shipmentRecordFormSchema } from '@/lib/validation/shipmentRecord';
-import { SHIPMENT_TYPE_OPTIONS } from '@/constants/shipmentType';
-import { useGradeOptionStore } from '@/stores/useGradeOptionStore';
+import { directSaleFormSchema } from '@/lib/validation/shipmentRecord';
+import { getGradeIdBySku } from '@/constants/grade';
 import { useVarietyOptionStore } from '@/stores/useVarietyOptionStore';
 import { useProductOptionStore } from '@/stores/useProductOptionStore';
-import type { ShipmentRecordFormInputs } from '@/types/shipmentRecord';
+import type { DirectSaleFormInputs } from '@/types/shipmentRecord';
 
 interface ShipmentRecordRegisterDialogProps {
   onRecordCreated?: () => void;
 }
 
+const createDefaultValues = (): DirectSaleFormInputs => ({
+  record_date: new Date(),
+  notes: '',
+  direct_sale_items: [],
+});
+
+
 export default function ShipmentRecordRegisterDialog({ onRecordCreated }: ShipmentRecordRegisterDialogProps) {
   const [open, setOpen] = useState(false);
   const { post } = usePostApi(commonApiHookOptions);
 
-  const shipmentTypeOptions = SHIPMENT_TYPE_OPTIONS;
-  const fetchGradeOptions = useGradeOptionStore((s) => s.fetchGradeOptions);
   const fetchVarietyOptions = useVarietyOptionStore((s) => s.fetchVarietyOptions);
   const fetchProductOptions = useProductOptionStore((s) => s.fetchProductOptions);
 
   // オプションデータを取得
   useEffect(() => {
-    fetchGradeOptions();
     fetchVarietyOptions();
     fetchProductOptions();
-  }, [fetchGradeOptions, fetchVarietyOptions, fetchProductOptions]);
-
-  // デフォルト値構築（出荷タイプ数分のタブ）
-  const buildDefaultValues = (): ShipmentRecordFormInputs => ({
-    record_date: new Date(),
-    notes: '',
-    tabs: shipmentTypeOptions.map((type) => ({
-      shipment_type_id: type.value,
-      varieties: [],
-    })),
-    direct_sale_items: [],
-  });
+  }, [fetchVarietyOptions, fetchProductOptions]);
 
   const {
     control,
@@ -64,47 +56,71 @@ export default function ShipmentRecordRegisterDialog({ onRecordCreated }: Shipme
     handleSubmit,
     formState: { errors },
     reset,
-    watch,
-    setValue,
-  } = useForm<ShipmentRecordFormInputs>({
-    resolver: yupResolver(shipmentRecordFormSchema) as any,
-    defaultValues: buildDefaultValues(),
+  } = useForm<DirectSaleFormInputs>({
+    resolver: yupResolver(directSaleFormSchema) as unknown as Resolver<DirectSaleFormInputs>,
+    defaultValues: createDefaultValues(),
   });
 
-  // 送信処理（スタブ）
-  const onSubmit = async (data: ShipmentRecordFormInputs) => {
-    // フォームデータをAPIリクエスト形式に変換
+  // 送信処理
+  const onSubmit = async (data: DirectSaleFormInputs) => {
+    const productOptions = useProductOptionStore.getState().productOptions;
+    const productById = new Map(productOptions.map((product) => [product.value.toString(), product]));
+
+    // box_quantity > 0 の商品のみ抽出
+    const validItems = data.direct_sale_items.filter(
+      (item) => item.product_id && item.box_quantity > 0
+    );
+
+    // variety_id + grade_id ごとに box_quantity を集計
+    const entryMap = new Map<string, { variety_id: number; grades: Map<number, number> }>();
+
+    validItems.forEach((item) => {
+      const product = productById.get(item.product_id);
+      if (!product) return;
+
+      const varietyId = product.variety;
+      const gradeId = getGradeIdBySku(product.sku_suffix);
+      const key = varietyId.toString();
+
+      if (!entryMap.has(key)) {
+        entryMap.set(key, { variety_id: varietyId, grades: new Map() });
+      }
+      const entry = entryMap.get(key)!;
+      entry.grades.set(gradeId, (entry.grades.get(gradeId) ?? 0) + item.box_quantity);
+    });
+
+    // shipment_entries を構築
+    const shipmentEntries = Array.from(entryMap.values()).map((e) => ({
+      variety_id: e.variety_id,
+      grades: Array.from(e.grades.entries()).map(([gradeId, quantity]) => ({
+        grade_id: gradeId,
+        quantity,
+      })),
+    }));
+
+    // direct_sale_items を構築（box_quantity > 0 のみ）
+    const directSaleItems = validItems.map((item) => {
+      const product = productById.get(item.product_id);
+      return {
+        variety_id: product?.variety ?? 0,
+        product_id: Number(item.product_id),
+        fruit_quantity: item.fruit_quantity,
+        box_quantity: item.box_quantity,
+      };
+    });
+
     const requestData = {
-      record_date: data.record_date instanceof Date ? format(data.record_date, 'yyyy-MM-dd') : data.record_date,
+      record_date: data.record_date instanceof Date
+        ? format(data.record_date, 'yyyy-MM-dd')
+        : data.record_date,
       notes: data.notes || null,
-      shipment_entries: data.tabs
-        .filter((tab) => tab.varieties.length > 0)
-        .flatMap((tab) =>
-          tab.varieties
-            .filter((v) => v.variety_id)
-            .map((v) => ({
-              shipment_type_id: tab.shipment_type_id,
-              variety_id: parseInt(v.variety_id),
-              grades: Object.entries(v.grades)
-                .filter(([_, qty]) => qty > 0)
-                .map(([gradeId, quantity]) => ({
-                  grade_id: parseInt(gradeId),
-                  quantity,
-                })),
-            }))
-        ),
-      direct_sale_items: data.direct_sale_items
-        .filter((item) => item.product_id && (item.fruit_quantity > 0 || item.box_quantity > 0))
-        .map((item) => ({
-          product_id: parseInt(item.product_id),
-          fruit_quantity: item.fruit_quantity,
-          box_quantity: item.box_quantity,
-        })),
+      shipment_entries: shipmentEntries,
+      direct_sale_items: directSaleItems,
     };
 
-    const res = await post('/shipment-record', requestData);
+    const res = await post('/shipment-record/direct-sale', requestData);
     if (res.success) {
-      reset(buildDefaultValues());
+      reset(createDefaultValues());
       setOpen(false);
       if (onRecordCreated) {
         onRecordCreated();
@@ -115,7 +131,7 @@ export default function ShipmentRecordRegisterDialog({ onRecordCreated }: Shipme
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
     if (isOpen) {
-      reset(buildDefaultValues());
+      reset(createDefaultValues());
     }
   };
 
@@ -124,7 +140,7 @@ export default function ShipmentRecordRegisterDialog({ onRecordCreated }: Shipme
       <DialogTrigger asChild>
         <Button type="button" className="text-sm py-2 px-2">
           <Plus />
-          新規記録
+          直売出荷登録
         </Button>
       </DialogTrigger>
       <DialogContent
@@ -132,12 +148,12 @@ export default function ShipmentRecordRegisterDialog({ onRecordCreated }: Shipme
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader className="sticky top-0 z-2 bg-background w-full p-4">
-          <DialogTitle>新規出荷記録</DialogTitle>
+          <DialogTitle>直売出荷記録</DialogTitle>
           <DialogDescription>
-            出荷数量を入力してください
+            直売の出荷数量を入力してください
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form id="direct-sale-form" onSubmit={handleSubmit(onSubmit)}>
           <div className="px-4 pb-2">
             <DatePicker
               control={control}
@@ -151,15 +167,13 @@ export default function ShipmentRecordRegisterDialog({ onRecordCreated }: Shipme
             control={control}
             errors={errors}
             trigger={trigger}
-            watch={watch}
-            setValue={setValue}
           />
         </form>
         <DialogFooter className="sticky bottom-0 z-10 bg-background w-full p-4 border-b">
           <DialogClose asChild>
             <Button type="button" outline className="w-full">閉じる</Button>
           </DialogClose>
-          <Button type="submit" onClick={handleSubmit(onSubmit)} className="w-full">保存</Button>
+          <Button type="submit" form="direct-sale-form" className="w-full">保存</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
