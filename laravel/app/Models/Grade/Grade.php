@@ -2,6 +2,8 @@
 
 namespace App\Models\Grade;
 
+use App\Enums\GradeScopeEnum;
+use App\Enums\GradeTypeEnum;
 use Illuminate\Database\Eloquent\Model;
 
 class Grade extends Model
@@ -13,5 +15,10 @@ class Grade extends Model
         'type',
         'shipment_scope',
         'sort_order',
+    ];
+
+    protected $casts = [
+        'type' => GradeTypeEnum::class,
+        'shipment_scope' => GradeScopeEnum::class,
     ];
 }

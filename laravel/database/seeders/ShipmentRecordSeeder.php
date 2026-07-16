@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Enums\ShipmentTypeEnum;
+use App\Models\DirectSaleProduct\DirectSaleProduct;
+use App\Models\Product\Product;
 use App\Models\ShipmentRecord\ShipmentRecord;
 use App\Models\ShipmentRecordDetail\ShipmentRecordDetail;
 use Carbon\Carbon;
@@ -12,19 +14,41 @@ class ShipmentRecordSeeder extends Seeder
 {
     // 品種ID
     private const VARIETY_KOUSUI = 1;     // 幸水
+
     private const VARIETY_SAIGYOKU = 2;   // 彩玉
+
     private const VARIETY_HOUSUI = 3;     // 豊水
+
     private const VARIETY_AKIZUKI = 4;    // あきづき
+
     private const VARIETY_NIKKORI = 5;    // にっこり
+
+    /** @var array<int, string> */
+    private const VARIETY_SKUS = [
+        self::VARIETY_KOUSUI => 'KOSUI',
+        self::VARIETY_SAIGYOKU => 'SAIGYOKU',
+        self::VARIETY_HOUSUI => 'HOSUI',
+        self::VARIETY_AKIZUKI => 'AKIZUKI',
+        self::VARIETY_NIKKORI => 'NIKKORI',
+    ];
 
     // 等級ID
     private const GRADE_SHU = 1;           // 秀
+
     private const GRADE_YU = 2;            // 優
+
     private const GRADE_RYO = 3;           // 良
+
     private const GRADE_KIKAKUGAI_S = 4;   // 規格外(販売)
+
     private const GRADE_KIKAKUGAI_NS = 5;  // 規格外(非販売)
+
     private const GRADE_LOSS = 6;          // ロス
+
     private const GRADE_PRESENT = 7;       // プレゼント
+
+    /** @var array<string, int> */
+    private array $productIds = [];
 
     /**
      * Run the database seeds.
@@ -95,14 +119,98 @@ class ShipmentRecordSeeder extends Seeder
         ]);
 
         foreach ($details as $detail) {
-            ShipmentRecordDetail::create([
+            $detailModel = ShipmentRecordDetail::create([
                 'shipment_record_id' => $record->id,
                 'variety_id' => $detail['variety_id'],
                 'shipment_type_id' => $detail['shipment_type_id'],
                 'grade_id' => $detail['grade_id'],
                 'quantity' => $detail['quantity'],
             ]);
+
+            // 直売明細には商品明細（direct_sale_products）を付与
+            if ($detail['shipment_type_id'] === ShipmentTypeEnum::Direct->value) {
+                $this->createDirectSaleProducts($detailModel, $detail);
+            }
         }
+    }
+
+    /**
+     * 直売明細の商品明細を作成
+     *
+     * 新データモデルでは商品明細が発生するのは秀（箱・袋）と規格外(販売)（訳あり袋）のみ。
+     * box_quantity の合計が明細の quantity と一致するように分配する。
+     * 商品IDは採番値に依存せずSKUから解決する。
+     */
+    private function createDirectSaleProducts(ShipmentRecordDetail $detail, array $data): void
+    {
+        $quantity = $data['quantity'];
+
+        if ($data['grade_id'] === self::GRADE_KIKAKUGAI_S) {
+            // 規格外(販売) → 訳あり袋（WBAG）
+            DirectSaleProduct::create([
+                'shipment_record_detail_id' => $detail->id,
+                'product_id' => $this->productId($data['variety_id'], 'WBAG'),
+                'fruit_quantity' => rand(5, 7),
+                'box_quantity' => $quantity,
+            ]);
+
+            return;
+        }
+
+        if ($data['grade_id'] !== self::GRADE_SHU) {
+            return;
+        }
+
+        // 秀 → 袋・5キロ箱・3キロ箱に分配
+        $bagQty = intdiv($quantity, 2);
+        $box5Qty = intdiv($quantity - $bagQty, 2);
+        $box3Qty = $quantity - $bagQty - $box5Qty;
+
+        if ($bagQty > 0) {
+            DirectSaleProduct::create([
+                'shipment_record_detail_id' => $detail->id,
+                'product_id' => $this->productId($data['variety_id'], 'BAG'),
+                'fruit_quantity' => rand(3, 5),
+                'box_quantity' => $bagQty,
+            ]);
+        }
+
+        if ($box5Qty > 0) {
+            // 5キロ箱は玉数違いの複数行を再現（同一商品×複数行の検証用）
+            $firstRow = intdiv($box5Qty + 1, 2);
+            DirectSaleProduct::create([
+                'shipment_record_detail_id' => $detail->id,
+                'product_id' => $this->productId($data['variety_id'], '5KL'),
+                'fruit_quantity' => 10,
+                'box_quantity' => $firstRow,
+            ]);
+            if ($box5Qty - $firstRow > 0) {
+                DirectSaleProduct::create([
+                    'shipment_record_detail_id' => $detail->id,
+                    'product_id' => $this->productId($data['variety_id'], '5KL'),
+                    'fruit_quantity' => 8,
+                    'box_quantity' => $box5Qty - $firstRow,
+                ]);
+            }
+        }
+
+        if ($box3Qty > 0) {
+            DirectSaleProduct::create([
+                'shipment_record_detail_id' => $detail->id,
+                'product_id' => $this->productId($data['variety_id'], '3KL'),
+                'fruit_quantity' => 6,
+                'box_quantity' => $box3Qty,
+            ]);
+        }
+    }
+
+    private function productId(int $varietyId, string $suffix): int
+    {
+        $sku = 'PEAR-'.self::VARIETY_SKUS[$varietyId].'-'.$suffix;
+
+        return $this->productIds[$sku] ??= (int) Product::query()
+            ->where('sku', $sku)
+            ->valueOrFail('id');
     }
 
     private function generateAugustDetails(int $day): array
@@ -229,7 +337,8 @@ class ShipmentRecordSeeder extends Seeder
             $details[] = ['variety_id' => self::VARIETY_AKIZUKI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_KIKAKUGAI_S, 'quantity' => rand(3, 10)];
         }
         if ($day % 4 === 0) {
-            $details[] = ['variety_id' => self::VARIETY_NIKKORI, 'shipment_type_id' => ShipmentTypeEnum::Direct->value, 'grade_id' => self::GRADE_KIKAKUGAI_NS, 'quantity' => rand(2, 6)];
+            // 規格外(非販売)はJA専用等級
+            $details[] = ['variety_id' => self::VARIETY_NIKKORI, 'shipment_type_id' => ShipmentTypeEnum::JA->value, 'grade_id' => self::GRADE_KIKAKUGAI_NS, 'quantity' => rand(2, 6)];
         }
 
         // ロス

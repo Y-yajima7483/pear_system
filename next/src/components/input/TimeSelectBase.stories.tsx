@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { useState } from 'react';
 import TimeSelectBase from './TimeSelectBase';
 
@@ -18,7 +18,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [value, setValue] = useState<string | null>(null);
     return (
       <TimeSelectBase
@@ -34,7 +34,7 @@ export const Default: Story = {
 };
 
 export const WithPreselectedTime: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [value, setValue] = useState<string | null>('10:00');
     return (
       <TimeSelectBase
@@ -50,7 +50,7 @@ export const WithPreselectedTime: Story = {
 };
 
 export const WithError: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [value, setValue] = useState<string | null>(null);
     return (
       <TimeSelectBase
@@ -67,7 +67,7 @@ export const WithError: Story = {
 };
 
 export const NarrowRange: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [value, setValue] = useState<string | null>(null);
     return (
       <TimeSelectBase

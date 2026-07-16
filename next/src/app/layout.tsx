@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: defaultMetadata.title,
   description: defaultMetadata.description,
   keywords: defaultMetadata.keywords,
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:8080'),
   openGraph: {
     title: defaultMetadata.title,
     description: defaultMetadata.description,

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { useState } from 'react';
 import SwitchButtonBase from './SwitchButtonBase';
 
@@ -16,7 +16,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [checked, setChecked] = useState(false);
     return (
       <SwitchButtonBase
@@ -32,7 +32,7 @@ export const Default: Story = {
 };
 
 export const CheckedByDefault: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [checked, setChecked] = useState(true);
     return (
       <SwitchButtonBase
@@ -48,7 +48,7 @@ export const CheckedByDefault: Story = {
 };
 
 export const WithoutLabel: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [checked, setChecked] = useState(false);
     return (
       <SwitchButtonBase
@@ -80,7 +80,7 @@ export const DisabledChecked: Story = {
 };
 
 export const WithError: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [checked, setChecked] = useState(false);
     return (
       <SwitchButtonBase

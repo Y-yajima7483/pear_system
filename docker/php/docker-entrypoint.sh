@@ -7,7 +7,7 @@ if [ ! -f "/var/www/app/composer.json" ]; then
     
     # プロジェクトの初期化
     cd /var/www/app
-    composer create-project --prefer-dist laravel/laravel:^10.0 .
+    composer create-project --prefer-dist laravel/laravel:^13.0 .
     
     cd /var/www/app
     
@@ -28,18 +28,9 @@ if [ -f "composer.json" ]; then
     composer install --no-interaction --prefer-dist --optimize-autoloader
 fi
 
-# routes/api.php にヘルスチェックエンドポイントを追加
-if ! grep -q "Route::get('/health'" /var/www/app/routes/api.php 2>/dev/null; then
-    echo "Adding health check endpoint..."
-    cat >> /var/www/app/routes/api.php << 'EOF'
-
-Route::get('/health', function () {
-    return response()->json(['status' => 'ok']);
-});
-EOF
-fi
-
-# キャッシュのクリア（開発環境）
+# キャッシュのクリア（開発環境のみ）
+# ※ ヘルスチェックエンドポイントの動的追加処理はここに存在していたが、
+#   routes/api.phpに正式なルート定義として移行したため削除済み。
 if [ "$APP_ENV" = "local" ]; then
     php artisan config:clear
     php artisan cache:clear

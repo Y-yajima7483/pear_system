@@ -1,15 +1,14 @@
 'use client'
 
 import { useCallback, useRef, useState } from "react";
-import axios, { AxiosRequestConfig } from "axios";
+import axios from "axios";
+import type { AxiosRequestConfig } from "axios";
 import { http, handleApiError } from "./http";
-import { ApiHookResponseType } from "@/types/index";
+import type { ApiHookOptions } from "./http";
+import type { ApiHookResponseType } from "@/types/index";
 
 
-export default function useGetApi<T = unknown>(opts?: {
-  presentError?: (e: any) => void;
-  onUnauthorizedRedirect?: () => void;
-}) {
+export default function useGetApi<T = unknown>(opts?: ApiHookOptions) {
   const [loading, setLoading] = useState(false);
   const controllerRef = useRef<AbortController | null>(null);
 

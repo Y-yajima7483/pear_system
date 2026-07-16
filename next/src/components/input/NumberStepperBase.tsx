@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { FieldValues, FieldPath } from "react-hook-form";
 import { Minus, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,7 @@ export interface Props<StepperValues extends FieldValues> {
 	step?: number;
 	required?: boolean;
 	disabled?: boolean;
+	accessibleLabel?: string;
 }
 
 export default function NumberStepperBase<StepperValues extends FieldValues>({
@@ -31,11 +32,19 @@ export default function NumberStepperBase<StepperValues extends FieldValues>({
 	step = 1,
 	required,
 	disabled,
+	accessibleLabel,
 }: Props<StepperValues>) {
-	const [inputValue, setInputValue] = useState(String(value));
+	const inputRef = useRef<HTMLInputElement>(null);
+	const lastValidInputRef = useRef(String(value));
+	const accessibleName = accessibleLabel ?? label ?? String(name);
 
 	useEffect(() => {
-		setInputValue(String(value));
+		const input = inputRef.current;
+		if (!input) return;
+
+		const nextValue = String(value);
+		input.value = nextValue;
+		lastValidInputRef.current = nextValue;
 	}, [value]);
 
 	const isMinReached = min !== undefined && value <= min;
@@ -54,21 +63,50 @@ export default function NumberStepperBase<StepperValues extends FieldValues>({
 	};
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const v = e.target.value;
-		if (v === "" || /^\d+$/.test(v)) {
-			setInputValue(v);
+		const rawValue = e.currentTarget.value;
+		if (rawValue === "") return;
+
+		if (!/^\d+$/.test(rawValue)) {
+			e.currentTarget.value = lastValidInputRef.current;
+			return;
 		}
+
+		const nextValue = Number(rawValue);
+		lastValidInputRef.current = rawValue;
+		const isBelowMin = min !== undefined && nextValue < min;
+		const isAboveMax = max !== undefined && nextValue > max;
+		if (isBelowMin || isAboveMax) return;
+
+		// Enterによるblur前submitでも、RHF側には常に最新の有効値を渡す。
+		onChange?.(nextValue);
+	};
+
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+		if (e.key !== "Enter" || e.currentTarget.value === "") return;
+
+		let nextValue = Number(e.currentTarget.value);
+		if (Number.isNaN(nextValue)) return;
+		if (min !== undefined) nextValue = Math.max(min, nextValue);
+		if (max !== undefined) nextValue = Math.min(max, nextValue);
+		e.currentTarget.value = String(nextValue);
+		lastValidInputRef.current = String(nextValue);
+		onChange?.(nextValue);
 	};
 
 	const handleBlur = () => {
-		if (inputValue === "" || isNaN(Number(inputValue))) {
-			setInputValue(String(value));
+		const input = inputRef.current;
+		if (!input) return;
+
+		if (input.value === "" || Number.isNaN(Number(input.value))) {
+			input.value = String(value);
+			lastValidInputRef.current = String(value);
 			return;
 		}
-		let num = Number(inputValue);
+		let num = Number(input.value);
 		if (min !== undefined) num = Math.max(min, num);
 		if (max !== undefined) num = Math.min(max, num);
-		setInputValue(String(num));
+		input.value = String(num);
+		lastValidInputRef.current = String(num);
 		onChange?.(num);
 	};
 
@@ -86,20 +124,24 @@ export default function NumberStepperBase<StepperValues extends FieldValues>({
 					className="number-stepper__btn number-stepper__btn--minus"
 					onClick={handleDecrement}
 					disabled={disabled || isMinReached}
-					aria-label="減らす"
+					aria-label={`${accessibleName}を減らす`}
 				>
 					<Minus className="number-stepper__icon" />
 				</button>
 				<div className="number-stepper__value">
 					<input
+						ref={inputRef}
 						id={`stepper-${name}`}
 						type="text"
 						inputMode="numeric"
 						className="number-stepper__input"
-						value={inputValue}
+						defaultValue={String(value)}
 						onChange={handleInputChange}
+						onKeyDown={handleKeyDown}
 						onBlur={handleBlur}
 						disabled={disabled}
+						aria-label={accessibleName}
+						aria-invalid={Boolean(errorMessage)}
 					/>
 					{unit && <span className="number-stepper__unit">{unit}</span>}
 				</div>
@@ -108,7 +150,7 @@ export default function NumberStepperBase<StepperValues extends FieldValues>({
 					className="number-stepper__btn number-stepper__btn--plus"
 					onClick={handleIncrement}
 					disabled={disabled || isMaxReached}
-					aria-label="増やす"
+					aria-label={`${accessibleName}を増やす`}
 				>
 					<Plus className="number-stepper__icon" />
 				</button>

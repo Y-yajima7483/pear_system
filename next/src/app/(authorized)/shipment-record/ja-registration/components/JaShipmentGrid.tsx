@@ -74,6 +74,7 @@ export default function JaShipmentGrid({ grades, gridData, onCellChange }: JaShi
                         onCellChange(dateIndex, gradeKey, parseInt(e.target.value) || 0)
                       }
                       min={0}
+                      aria-label={`${entry.record_date} ${grade.name} 出荷数量`}
                     />
                   </td>
                 );

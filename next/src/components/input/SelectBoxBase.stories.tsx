@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { useState } from 'react';
 import SelectBoxBase from './SelectBoxBase';
 
@@ -74,7 +74,7 @@ export const NumberValues: Story = {
 };
 
 export const Controlled: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [value, setValue] = useState<string | number | null>(null);
     return (
       <div>

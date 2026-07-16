@@ -22,10 +22,12 @@ class RegisterJaShipmentService extends AbstractService
             $result = $this->shipmentRecordRepository->upsertJaShipment($data);
 
             return $this->response->execute($result);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            report($e);
+
             return [
                 'success' => false,
-                'message' => 'JA出荷記録の登録に失敗しました: '.$e->getMessage(),
+                'message' => 'JA出荷記録の登録に失敗しました。',
             ];
         }
     }

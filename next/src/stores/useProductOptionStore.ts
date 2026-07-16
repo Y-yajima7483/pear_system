@@ -1,11 +1,12 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { http } from '@/lib/api/http';
-import { ProductApiOptionType } from '@/types/index';
+import type { ProductApiOptionType } from '@/types/index';
 
 interface ProductOptionState {
   productOptions: Array<ProductApiOptionType>;
   isLoading: boolean;
+  isInitialized: boolean;
   error: string | null;
   lastFetchedAt: Date | null;
   
@@ -19,6 +20,7 @@ interface ProductOptionState {
 const initialState = {
   productOptions: [],
   isLoading: false,
+  isInitialized: false,
   error: null,
   lastFetchedAt: null,
 };
@@ -32,6 +34,7 @@ export const useProductOptionStore = create<ProductOptionState>()(
         fetchProductOptions: async () => {
           // すでにデータを取得済みの場合はスキップ
           if (get().productOptions.length > 0 && get().lastFetchedAt) {
+            set({ isInitialized: true });
             console.log('Product options already fetched, skipping...');
             return;
           }
@@ -45,6 +48,7 @@ export const useProductOptionStore = create<ProductOptionState>()(
               productOptions: response.data,
               lastFetchedAt: new Date(),
               isLoading: false,
+              isInitialized: true,
               error: null,
             });
           } catch (error) {
@@ -61,12 +65,13 @@ export const useProductOptionStore = create<ProductOptionState>()(
           set({ isLoading: true, error: null });
 
           try {
-            const response = await http.get<Array<ProductApiOptionType>>('/api/product_option');
+            const response = await http.get<Array<ProductApiOptionType>>('/product_option');
             
             set({
               productOptions: response.data,
               lastFetchedAt: new Date(),
               isLoading: false,
+              isInitialized: true,
               error: null,
             });
           } catch (error) {
@@ -104,4 +109,5 @@ export const useProductOptionStore = create<ProductOptionState>()(
 export const useProductOptions = () => useProductOptionStore((state) => state.productOptions);
 export const useMainProductOptions = () => useProductOptionStore((state) => state.productOptions.filter((p) => p.is_main));
 export const useProductOptionsLoading = () => useProductOptionStore((state) => state.isLoading);
+export const useProductOptionsInitialized = () => useProductOptionStore((state) => state.isInitialized);
 export const useProductOptionsError = () => useProductOptionStore((state) => state.error);

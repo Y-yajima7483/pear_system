@@ -1,7 +1,7 @@
 'use client'
 
 import { toast } from 'sonner';
-import { ApiError } from './http';
+import type { ApiError } from './http';
 import { userStore } from '@/stores/useUserStore';
 
 /**

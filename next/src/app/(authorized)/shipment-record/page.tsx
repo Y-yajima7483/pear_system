@@ -50,7 +50,11 @@ export default function ShipmentRecordPage() {
   }, [get]);
 
   useEffect(() => {
-    fetchData(selectedYear, selectedMonth);
+    const timeoutId = window.setTimeout(() => {
+      void fetchData(selectedYear, selectedMonth);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [selectedYear, selectedMonth, fetchData]);
 
   // サマリーラベル
@@ -64,9 +68,9 @@ export default function ShipmentRecordPage() {
     setSelectedMonth(null);
   };
 
-  const handleEdit = (id: number) => {
-    // 将来の編集機能用
-    console.log('Edit record:', id);
+  // 行選択で日別詳細ページへ遷移
+  const handleSelect = (recordDate: string) => {
+    router.push(`/shipment-record/${recordDate}`);
   };
 
   // 初期ローディング中
@@ -89,7 +93,7 @@ export default function ShipmentRecordPage() {
         monthOptions={monthOptions}
         actionButton={
           <div className="flex items-center gap-2">
-            <ShipmentRecordRegisterDialog onRecordCreated={() => fetchData(selectedYear, selectedMonth)} />
+            <ShipmentRecordRegisterDialog onSaved={() => fetchData(selectedYear, selectedMonth)} />
             <Button
               type="button"
               onClick={() => router.push('/shipment-record/ja-registration')}
@@ -125,7 +129,7 @@ export default function ShipmentRecordPage() {
         </div>
 
         {/* 出荷記録テーブル */}
-        <ShipmentRecordTable records={data?.records ?? []} shipmentTypes={shipmentTypes} onEdit={handleEdit} />
+        <ShipmentRecordTable records={data?.records ?? []} shipmentTypes={shipmentTypes} onSelect={handleSelect} />
       </div>
     </div>
   );

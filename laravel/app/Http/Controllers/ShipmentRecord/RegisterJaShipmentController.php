@@ -10,6 +10,8 @@ class RegisterJaShipmentController extends AbstractController
 {
     public function __invoke(RegisterJaShipmentRequest $request, RegisterJaShipmentService $service)
     {
-        return $this->executeApi($request, $service);
+        $response = $service->execute($request->validated());
+
+        return response()->json($response, ($response['success'] ?? false) ? 200 : 500);
     }
 }

@@ -2,15 +2,32 @@
 .env
 .env.*
 !.env.example
+!.env.production.example
 
 # Docker volumes and data
 /docker/mysql/data/
+
+# Backups: ディレクトリ構造(.gitkeep)のみ管理し、実体は形式を問わず管理外
+backups/**
+!backups/**/
+!backups/**/.gitkeep
+
+# Credentials, private keys and local client configuration
+.npmrc
+.my.cnf
+auth.json
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
 
 # IDE and Editor
 .vscode/
 .claude/
 .agents/
 .idea/
+docs/
 private/
 plans/
 *.swp
@@ -39,6 +56,7 @@ laravel/storage/*.key
 laravel/.env
 laravel/.env.backup
 laravel/.env.production
+!laravel/.env.production.example
 laravel/Homestead.json
 laravel/Homestead.yaml
 laravel/auth.json
@@ -74,6 +92,7 @@ next/*.tsbuildinfo
 next/next-env.d.ts
 next/.env
 next/.yarnrc.yml
+!next/.yarnrc.yml
 
 
 # Serena (MCP server)

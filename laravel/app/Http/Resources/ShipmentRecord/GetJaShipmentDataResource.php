@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\ShipmentRecord;
 
+use App\Enums\GradeScopeEnum;
 use App\Http\Resources\AbstractResource;
 
 class GetJaShipmentDataResource extends AbstractResource
@@ -12,7 +13,7 @@ class GetJaShipmentDataResource extends AbstractResource
     public function execute(array $data): array
     {
         $grades = collect($data['grades'])
-            ->filter(fn ($grade) => in_array($grade['shipment_scope'], ['both', 'ja_only']))
+            ->filter(fn ($grade) => GradeScopeEnum::from($grade['shipment_scope'])->allowsJa())
             ->map(fn ($grade) => [
                 'id' => $grade['id'],
                 'name' => $grade['name'],
@@ -21,6 +22,7 @@ class GetJaShipmentDataResource extends AbstractResource
             ->toArray();
 
         return [
+            'success' => true,
             'grades' => $grades,
             'entries' => $data['entries'],
         ];

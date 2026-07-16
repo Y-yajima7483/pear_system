@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { useState } from 'react';
 import NumberStepperBase from './NumberStepperBase';
 
@@ -18,7 +18,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [value, setValue] = useState(args.value ?? 0);
     return (
       <NumberStepperBase
@@ -35,7 +35,7 @@ export const Default: Story = {
 };
 
 export const WithUnit: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [value, setValue] = useState(args.value ?? 5);
     return (
       <NumberStepperBase
@@ -53,7 +53,7 @@ export const WithUnit: Story = {
 };
 
 export const WithMinMax: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [value, setValue] = useState(args.value ?? 1);
     return (
       <NumberStepperBase
@@ -73,7 +73,7 @@ export const WithMinMax: Story = {
 };
 
 export const WithStep: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [value, setValue] = useState(args.value ?? 0);
     return (
       <NumberStepperBase
@@ -92,7 +92,7 @@ export const WithStep: Story = {
 };
 
 export const Required: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [value, setValue] = useState(args.value ?? 0);
     return (
       <NumberStepperBase
@@ -118,7 +118,7 @@ export const Disabled: Story = {
 };
 
 export const WithError: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [value, setValue] = useState(args.value ?? 0);
     return (
       <NumberStepperBase

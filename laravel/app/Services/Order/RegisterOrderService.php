@@ -5,6 +5,7 @@ namespace App\Services\Order;
 use App\Http\Resources\Order\RegisterOrderResource;
 use App\Models\Order\Repository\OrderRepositoryInterface;
 use App\Services\AbstractService;
+use App\Services\Order\Exceptions\UnexpectedOrderException;
 
 class RegisterOrderService extends AbstractService
 {
@@ -24,12 +25,10 @@ class RegisterOrderService extends AbstractService
 
             // レスポンスデータを整形して返す
             return $this->response->execute(['order' => $order]);
-        } catch (\Exception $e) {
-            // エラー時のレスポンス
-            return [
-                'success' => false,
-                'message' => '注文の登録に失敗しました: '.$e->getMessage(),
-            ];
+        } catch (\Throwable $e) {
+            report($e);
+
+            throw UnexpectedOrderException::register($e);
         }
     }
 }

@@ -1,17 +1,17 @@
 'use client'
 
-import React, { useLayoutEffect } from 'react'
+import { useEffect } from 'react'
 import * as yup from "yup"
 import { toast } from 'sonner';
-import { unauthorized, useRouter } from 'next/navigation';
-import { useForm, FieldValues } from 'react-hook-form'
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button'
 import TextField from '@/components/input/TextField';
-import { UserDataType } from '@/types/index';
+import type { UserDataType } from '@/types/index';
 import { userStore } from '@/stores/useUserStore';
-import { http,handleApiError } from '@/lib/api/http';
+import { handleApiError, http, initializeCsrfCookie } from '@/lib/api/http';
 import { overlayStore } from '@/stores/useOverlayStore';
 import { useVarietyOptionStore } from '@/stores/useVarietyOptionStore';
 import { useProductOptionStore } from '@/stores/useProductOptionStore';
@@ -38,14 +38,14 @@ export default function Home() {
     defaultValues: { email: "", password: "" },
     resolver: yupResolver(schema),
   });
-  useLayoutEffect(()=> {
+  useEffect(()=> {
     if(isAuthorized) router.push("/");
-  },[isAuthorized]);
-  const onSubmit = async(data:FieldValues) => {
+  },[isAuthorized, router]);
+  const onSubmit = async(data: FormData) => {
       try {
         openOverlay();
+        await initializeCsrfCookie();
         const res = await http.post<UserDataType>("/login", data);
-        console.log(res.status)
         login(res.data);
         
         // ログイン成功後にマスタデータを取得
@@ -57,18 +57,15 @@ export default function Home() {
         
         toast.success("ログインしました");
       } catch(e) {
-        console.log(e)
         handleApiError(e, {
           process: ({status, message, errors})=> {
             if(status === 422 && errors) {
-              const errorMessages = Object.keys(errors).map((val)=> {
-                const key = val as keyof typeof errors
-                return errors[key];
-              }).join("\n");
+              const errorMessages = Object.values(errors).flat().join("\n");
               toast.error(message, {
                 description: errorMessages,
                 className: "whitespace-pre-line",
               });
+              return;
             }
             toast.error(message);
           },

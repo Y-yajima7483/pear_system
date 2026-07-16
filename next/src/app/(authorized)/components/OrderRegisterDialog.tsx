@@ -20,6 +20,8 @@ import OrderForm, { OrderFormInputs, itemDefaultValues } from './OrderForm';
 import usePostApi from '@/lib/api/usePostApi';
 import { commonApiHookOptions } from '@/lib/api/commonErrorHandlers';
 import { orderFormSchema } from '@/lib/validation/order';
+import { toast } from 'sonner';
+import type { OrderMutationApiResponse } from '@/types/order';
 
 // APIリクエスト型(注文情報)
 interface OrderItemRequestType {
@@ -34,9 +36,19 @@ interface OrderRegisterDialogProps {
   onOrderCreated?: () => void;
 }
 
+interface OrderRegisterRequestType {
+  customer_name: string;
+  notes: string;
+  pickup_date: string | null;
+  pickup_time: string | null;
+  items: OrderItemRequestType[];
+}
+
 export default function OrderRegisterDialog({ onOrderCreated }: OrderRegisterDialogProps) {
   const [open, setOpen] = useState(false);
-  const { post } = usePostApi(commonApiHookOptions);
+  const { post, loading } = usePostApi<OrderRegisterRequestType, OrderMutationApiResponse>(
+    commonApiHookOptions
+  );
 
   const { control, trigger, handleSubmit, formState: {errors}, reset, watch, setValue } = useForm<OrderFormInputs>({
     resolver: yupResolver(orderFormSchema),
@@ -57,32 +69,34 @@ export default function OrderRegisterDialog({ onOrderCreated }: OrderRegisterDia
   // 注文登録
   const onSubmit = async(data: OrderFormInputs) => {
     // 注文情報を整形
-    let orderItem:Array<OrderItemRequestType> = [];
-    data.items.forEach(variety => {
+    const orderItems: Array<OrderItemRequestType> = data.items.map((variety) => {
       const items = Object.entries(variety.product)
-        .filter(([_, quantity]) => quantity > 0)
+        .filter(([, quantity]) => quantity > 0)
         .map(([productId, quantity]) => ({
           product_id: parseInt(productId),
           quantity,
-        }))
-        orderItem.push({
-          variety_id: parseInt(variety.variety_id),
-          items,
-        });
+        }));
+      return {
+        variety_id: parseInt(variety.variety_id),
+        items,
+      };
     });
     const res = await post('/order', {
       customer_name: data.customer_name,
       notes: data.notes,
       pickup_date: data.pickup_date ? format(data.pickup_date, 'yyyy-MM-dd') : null,
       pickup_time: data.pickup_time ? data.pickup_time : null,
-      items: orderItem
+      items: orderItems
     });
-    if(res.success) {
+    if(res.success && res.data.success) {
+      toast.success(res.data.message);
       reset();
       setOpen(false);
       if (onOrderCreated) {
         onOrderCreated();
       }
+    } else if (res.success) {
+      toast.error(res.data.message);
     }
   }
   
@@ -104,7 +118,7 @@ export default function OrderRegisterDialog({ onOrderCreated }: OrderRegisterDia
             注文内容を入力してください
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form id="order-register-form" onSubmit={handleSubmit(onSubmit)}>
           <OrderForm
             control={control}
             errors={errors}
@@ -118,7 +132,14 @@ export default function OrderRegisterDialog({ onOrderCreated }: OrderRegisterDia
           <DialogClose asChild>
             <Button type="button" outline className='w-full'>閉じる</Button>
           </DialogClose>
-          <Button type="submit" onClick={handleSubmit(onSubmit)} className='w-full'>保存</Button>
+          <Button
+            type="submit"
+            form="order-register-form"
+            className='w-full'
+            disabled={loading}
+          >
+            保存
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

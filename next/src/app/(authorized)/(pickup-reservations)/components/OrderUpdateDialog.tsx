@@ -18,7 +18,8 @@ import OrderForm, { OrderFormInputs, ItemValueType } from '../../components/Orde
 import usePutApi from '@/lib/api/usePutApi';
 import { commonApiHookOptions } from '@/lib/api/commonErrorHandlers';
 import { orderUpdateFormSchema } from '@/lib/validation/order';
-import { OrderDetailData } from '@/types/order';
+import { toast } from 'sonner';
+import type { OrderDetailData, OrderMutationApiResponse } from '@/types/order';
 
 // APIリクエスト型(注文情報)
 interface OrderItemRequestType {
@@ -36,6 +37,15 @@ interface OrderUpdateDialogProps {
   onOpenChange?: (open: boolean) => void;
 }
 
+interface OrderUpdateRequestType {
+  customer_name: string;
+  notes: string;
+  pickup_date: string | null;
+  pickup_time: string | null;
+  items: OrderItemRequestType[];
+  status: OrderFormInputs['status'];
+}
+
 export default function OrderUpdateDialog({
   orderData,
   onOrderUpdated,
@@ -43,7 +53,9 @@ export default function OrderUpdateDialog({
   onOpenChange: controlledOnOpenChange
 }: OrderUpdateDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false);
-  const { update } = usePutApi(commonApiHookOptions);
+  const { update, loading } = usePutApi<OrderUpdateRequestType, OrderMutationApiResponse>(
+    commonApiHookOptions
+  );
 
   // 制御モード（親から open/onOpenChange が渡される）か非制御モードかを判定
   const isControlled = controlledOpen !== undefined;
@@ -95,33 +107,35 @@ export default function OrderUpdateDialog({
   // 注文更新
   const onSubmit = async(data: OrderFormInputs) => {
     // 注文情報を整形
-    let orderItem: Array<OrderItemRequestType> = [];
-    data.items.forEach((variety, index) => {
+    const orderItems: Array<OrderItemRequestType> = data.items.map((variety) => {
       const items = Object.entries(variety.product)
-        .filter(([_, quantity]) => quantity > 0)
+        .filter(([, quantity]) => quantity > 0)
         .map(([productId, quantity]) => ({
           product_id: parseInt(productId),
           quantity,
-        }))
-      orderItem.push({
+        }));
+      return {
         variety_id: parseInt(variety.variety_id),
         items,
-      });
+      };
     });
     const res = await update(`/order/${orderData.id}`, {
       customer_name: data.customer_name,
       notes: data.notes,
       pickup_date: data.pickup_date ? format(data.pickup_date, 'yyyy-MM-dd') : null,
       pickup_time: data.pickup_time ? data.pickup_time : null,
-      items: orderItem,
+      items: orderItems,
       status: data.status,
     });
 
-    if(res.success) {
+    if(res.success && res.data.success) {
+      toast.success(res.data.message);
       setOpen(false);
       if (onOrderUpdated) {
         onOrderUpdated();
       }
+    } else if (res.success) {
+      toast.error(res.data.message);
     }
   }
 
@@ -137,7 +151,7 @@ export default function OrderUpdateDialog({
             注文内容を編集してください
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form id="order-update-form" onSubmit={handleSubmit(onSubmit)}>
           <OrderForm
             control={control}
             errors={errors}
@@ -152,7 +166,14 @@ export default function OrderUpdateDialog({
           <DialogClose asChild>
             <Button type="button" outline className='w-full'>閉じる</Button>
           </DialogClose>
-          <Button type="submit" onClick={handleSubmit(onSubmit)} className='w-full'>保存</Button>
+          <Button
+            type="submit"
+            form="order-update-form"
+            className='w-full'
+            disabled={loading}
+          >
+            保存
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

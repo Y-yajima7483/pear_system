@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Control, FieldErrors, FieldPath, useFieldArray, Controller } from 'react-hook-form';
 import { X, Plus } from 'lucide-react';
 import NumberStepperBase from '@/components/input/NumberStepperBase';
@@ -8,8 +8,9 @@ import SelectBoxBase from '@/components/input/SelectBoxBase';
 import Button from '@/components/ui/Button';
 import { useVarietyOptions } from '@/stores/useVarietyOptionStore';
 import { useProductOptions } from '@/stores/useProductOptionStore';
-import { SKU_SUFFIX } from '@/constants/product';
-import type { OptionType, ProductApiOptionType } from '@/types';
+import { useGradeOptions } from '@/stores/useGradeOptionStore';
+import { getInitialFruitQuantities } from '@/constants/directSaleDefaults';
+import type { GradeApiOptionType, OptionType, ProductApiOptionType } from '@/types';
 import type { DirectSaleFormInputs } from '@/types/shipmentRecord';
 
 interface Props {
@@ -20,23 +21,24 @@ interface Props {
 export default function DirectSaleItems({ control, errors }: Props) {
   const varietyOptions = useVarietyOptions();
   const productOptions = useProductOptions();
+  const gradeOptions = useGradeOptions();
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'direct_sale_items',
+  });
+  const {
+    fields: manualFields,
+    append: appendManualEntries,
+    remove: removeManualEntries,
+  } = useFieldArray({
+    control,
+    name: 'manual_grade_entries',
   });
 
   // 品種セレクタの選択値
   const [selectedVarietyId, setSelectedVarietyId] = useState<string>('');
   // 非メイン商品セレクタの選択値（品種IDごと）
   const [selectedNonMainProductIds, setSelectedNonMainProductIds] = useState<Record<number, string>>({});
-
-  // sku_suffixから初期玉数リストを取得（is_shipping商品のみ複数行）
-  const getInitialFruitQuantities = useCallback((skuSuffix: string, isShipping: boolean): number[] => {
-    if (!isShipping) return [0];
-    if (skuSuffix === SKU_SUFFIX.FIVE_KG_L || skuSuffix === SKU_SUFFIX.FIVE_KG_M) return [10, 9, 8, 7];
-    if (skuSuffix === SKU_SUFFIX.THREE_KG_L) return [5, 6];
-    return [0];
-  }, []);
 
   const productById = useMemo(
     () => new Map(productOptions.map((product) => [product.value.toString(), product])),
@@ -64,12 +66,29 @@ export default function DirectSaleItems({ control, errors }: Props) {
     return map;
   }, [productOptions]);
 
+  const directGradeOptions = useMemo<GradeApiOptionType[]>(
+    () => gradeOptions.filter((grade) => grade.shipment_scope !== 'ja_only'),
+    [gradeOptions]
+  );
+
   const addedVarietyIds = useMemo(() => {
     const ids: number[] = [];
     const seen = new Set<number>();
 
+    manualFields.forEach((field) => {
+      const varietyId = Number(field.variety_id);
+      if (!Number.isFinite(varietyId) || seen.has(varietyId)) {
+        return;
+      }
+
+      seen.add(varietyId);
+      ids.push(varietyId);
+    });
+
     fields.forEach((field) => {
-      const varietyId = productById.get(field.product_id)?.variety;
+      const varietyId = field.variety_id
+        ? Number(field.variety_id)
+        : productById.get(field.product_id)?.variety;
       if (varietyId === undefined || seen.has(varietyId)) {
         return;
       }
@@ -79,20 +98,7 @@ export default function DirectSaleItems({ control, errors }: Props) {
     });
 
     return ids;
-  }, [fields, productById]);
-
-  useEffect(() => {
-    setSelectedNonMainProductIds((prev) => {
-      const activeVarietyIds = new Set(addedVarietyIds);
-      const nextEntries = Object.entries(prev).filter(([varietyId]) => activeVarietyIds.has(Number(varietyId)));
-
-      if (nextEntries.length === Object.keys(prev).length) {
-        return prev;
-      }
-
-      return Object.fromEntries(nextEntries);
-    });
-  }, [addedVarietyIds]);
+  }, [fields, manualFields, productById]);
 
   // 品種セレクタ用オプション（追加済みを除外）
   const varietySelectOptions: OptionType[] = useMemo(
@@ -129,6 +135,7 @@ export default function DirectSaleItems({ control, errors }: Props) {
       const initialQuantities = getInitialFruitQuantities(product.sku_suffix, product.is_shipping);
       initialQuantities.forEach((qty) => {
         append({
+          variety_id: varietyId.toString(),
           product_id: product.value.toString(),
           fruit_quantity: qty,
           box_quantity: 0,
@@ -136,8 +143,16 @@ export default function DirectSaleItems({ control, errors }: Props) {
       });
     });
 
+    appendManualEntries(
+      directGradeOptions.map((grade) => ({
+        variety_id: varietyId.toString(),
+        grade_id: grade.value.toString(),
+        quantity: 0,
+      }))
+    );
+
     setSelectedVarietyId('');
-  }, [selectedVarietyId, productsByVariety, append, getInitialFruitQuantities]);
+  }, [selectedVarietyId, productsByVariety, append, appendManualEntries, directGradeOptions]);
 
   // 非メイン商品追加
   const handleAddNonMainProduct = useCallback(
@@ -148,11 +163,16 @@ export default function DirectSaleItems({ control, errors }: Props) {
         ? getInitialFruitQuantities(product.sku_suffix, product.is_shipping)
         : [0];
       initialQuantities.forEach((qty) => {
-        append({ product_id: productId, fruit_quantity: qty, box_quantity: 0 });
+        append({
+          variety_id: varietyId.toString(),
+          product_id: productId,
+          fruit_quantity: qty,
+          box_quantity: 0,
+        });
       });
       setSelectedNonMainProductIds((prev) => ({ ...prev, [varietyId]: '' }));
     },
-    [append, productById, getInitialFruitQuantities]
+    [append, productById]
   );
 
   // 品種削除
@@ -164,18 +184,27 @@ export default function DirectSaleItems({ control, errors }: Props) {
 
       // fieldsの中から該当商品のインデックスを降順で取得して削除
       const indicesToRemove = fields
-        .map((field, index) => (productIdsForVariety.has(field.product_id) ? index : -1))
+        .map((field, index) => (
+          field.variety_id === varietyId.toString() || productIdsForVariety.has(field.product_id)
+            ? index
+            : -1
+        ))
         .filter((i) => i !== -1)
         .reverse();
 
       indicesToRemove.forEach((index) => remove(index));
+      const manualIndicesToRemove = manualFields
+        .map((field, index) => (Number(field.variety_id) === varietyId ? index : -1))
+        .filter((index) => index !== -1)
+        .reverse();
+      manualIndicesToRemove.forEach((index) => removeManualEntries(index));
       setSelectedNonMainProductIds((prev) => {
         const next = { ...prev };
         delete next[varietyId];
         return next;
       });
     },
-    [productsByVariety, fields, remove]
+    [productsByVariety, fields, manualFields, remove, removeManualEntries]
   );
 
   // product_id → 商品名のマップ
@@ -224,16 +253,28 @@ export default function DirectSaleItems({ control, errors }: Props) {
     );
   }, [fields, productById, productNameMap]);
 
+  const manualFieldIndexMap = useMemo(
+    () =>
+      new Map(
+        manualFields.map((field, index) => [
+          `${field.variety_id}:${field.grade_id}`,
+          index,
+        ])
+      ),
+    [manualFields]
+  );
+
   // 行追加ハンドラー
   const handleAddRow = useCallback(
     (productId: string) => {
       append({
+        variety_id: productById.get(productId)?.variety.toString(),
         product_id: productId,
         fruit_quantity: 0,
         box_quantity: 0,
       });
     },
-    [append]
+    [append, productById]
   );
 
   // 行削除ハンドラー
@@ -248,6 +289,9 @@ export default function DirectSaleItems({ control, errors }: Props) {
     <div className="px-1">
       {/* セクション区切り */}
       <div className="ds-section-divider">品種別入力</div>
+      <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
+        品種を追加すると定番の玉数パターンで初期行が並びます（目安です。玉数・行は自由に変更できます）
+      </p>
 
       {/* 品種追加行 */}
       <div className="ds-variety-add-row">
@@ -263,7 +307,7 @@ export default function DirectSaleItems({ control, errors }: Props) {
           type="button"
           onClick={handleAddVariety}
           outline
-          disabled={!selectedVarietyId}
+          disabled={!selectedVarietyId || directGradeOptions.length === 0}
           className="!px-4 !py-2 !text-sm whitespace-nowrap"
         >
           + 品種を追加
@@ -274,6 +318,11 @@ export default function DirectSaleItems({ control, errors }: Props) {
       {(errors.direct_sale_items?.root?.message || errors.direct_sale_items?.message) && (
         <p className="text-sm text-[var(--error)] mt-2">
           {errors.direct_sale_items?.root?.message || errors.direct_sale_items?.message}
+        </p>
+      )}
+      {(errors.manual_grade_entries?.root?.message || errors.manual_grade_entries?.message) && (
+        <p className="text-sm text-[var(--error)] mt-2">
+          {errors.manual_grade_entries?.root?.message || errors.manual_grade_entries?.message}
         </p>
       )}
 
@@ -304,22 +353,34 @@ export default function DirectSaleItems({ control, errors }: Props) {
               </button>
             </div>
 
-            {/* カラムヘッダー */}
-            <div className="ds-column-headers">
-              <span>商品名</span>
-              <span style={{ textAlign: 'center' }}>玉数</span>
-              <span style={{ textAlign: 'center' }}>箱/袋数</span>
-              <span></span>
-            </div>
+            {productGroups.length > 0 && (
+              <div className="ds-column-headers">
+                <span>商品名</span>
+                <span style={{ textAlign: 'center' }}>玉数</span>
+                <span style={{ textAlign: 'center' }}>箱/袋数</span>
+                <span></span>
+              </div>
+            )}
 
-            {/* 商品行 */}
             <div className="ds-variety-card__body">
               {productGroups.map((group) => (
                 <div key={group.productId} className="ds-product-group">
                   {group.rows.map((row, rowIdx) => (
                     <div key={row.fieldId} className="ds-product-row">
                       <span className="ds-product-name">
-                        {rowIdx === 0 ? group.productName : ''}
+                        {rowIdx === 0 && (
+                          <>
+                            {group.productName}
+                            <button
+                              type="button"
+                              className="ds-add-row-btn ml-2"
+                              onClick={() => handleAddRow(group.productId)}
+                              title="玉数違いの行を追加"
+                            >
+                              <Plus size={14} />
+                            </button>
+                          </>
+                        )}
                       </span>
                       <div style={{ textAlign: 'center' }}>
                         <Controller
@@ -331,6 +392,7 @@ export default function DirectSaleItems({ control, errors }: Props) {
                               value={f.value ?? 0}
                               onChange={f.onChange}
                               min={0}
+                              accessibleLabel={`${varietyNameById.get(varietyId) ?? `品種${varietyId}`} ${group.productName || `商品${group.productId}`} 玉数`}
                               errorMessage={errors.direct_sale_items?.[row.fieldIndex]?.fruit_quantity?.message}
                             />
                           )}
@@ -346,36 +408,31 @@ export default function DirectSaleItems({ control, errors }: Props) {
                               value={f.value ?? 0}
                               onChange={f.onChange}
                               min={0}
+                              accessibleLabel={`${varietyNameById.get(varietyId) ?? `品種${varietyId}`} ${group.productName || `商品${group.productId}`} 箱・袋数`}
                               errorMessage={errors.direct_sale_items?.[row.fieldIndex]?.box_quantity?.message}
                             />
                           )}
                         />
                       </div>
                       <div className="ds-row-actions">
-                        {rowIdx === 0 ? (
-                          <button
-                            type="button"
-                            className="ds-add-row-btn"
-                            onClick={() => handleAddRow(group.productId)}
-                            title="行を追加"
-                          >
-                            <Plus size={14} />
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            className="ds-remove-row-btn"
-                            onClick={() => handleRemoveRow(row.fieldIndex)}
-                            title="行を削除"
-                          >
-                            <X size={14} />
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          className="ds-remove-row-btn"
+                          onClick={() => handleRemoveRow(row.fieldIndex)}
+                          title="行を削除"
+                        >
+                          <X size={14} />
+                        </button>
                       </div>
                     </div>
                   ))}
                 </div>
               ))}
+              {productGroups.length === 0 && (
+                <p className="px-4 py-3 text-sm text-[var(--text-muted)]">
+                  この品種には登録済みの商品がありません。商品外数量を入力できます。
+                </p>
+              )}
             </div>
 
             {/* 非メイン商品追加 */}
@@ -402,6 +459,43 @@ export default function DirectSaleItems({ control, errors }: Props) {
                 </Button>
               </div>
             )}
+
+            <div className="border-t border-[var(--pear-border)] px-4 py-4">
+              <div className="mb-3">
+                <h3 className="text-sm font-semibold">商品外数量</h3>
+                <p className="text-xs text-[var(--text-muted)] mt-1">
+                  商品の箱・袋数とは別に集計する数量を、等級ごとに入力してください。
+                </p>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                {directGradeOptions.map((grade) => {
+                  const fieldIndex = manualFieldIndexMap.get(`${varietyId}:${grade.value}`);
+                  if (fieldIndex === undefined) {
+                    return null;
+                  }
+
+                  return (
+                    <Controller
+                      key={grade.value}
+                      name={`manual_grade_entries.${fieldIndex}.quantity`}
+                      control={control}
+                      render={({ field }) => (
+                        <NumberStepperBase
+                          name={`manual_grade_entries.${fieldIndex}.quantity` as FieldPath<DirectSaleFormInputs>}
+                          label={grade.label}
+                          value={field.value ?? 0}
+                          onChange={field.onChange}
+                          min={0}
+                          unit="個"
+                          accessibleLabel={`${varietyNameById.get(varietyId) ?? `品種${varietyId}`} ${grade.label} 商品外数量`}
+                          errorMessage={errors.manual_grade_entries?.[fieldIndex]?.quantity?.message}
+                        />
+                      )}
+                    />
+                  );
+                })}
+              </div>
+            </div>
           </div>
         );
       })}

@@ -61,7 +61,7 @@ export const useVarietyOptionStore = create<VarietyOptionState>()(
           set({ isLoading: true, error: null });
 
           try {
-            const response = await http.get<ApiOptionType[]>('/api/variety_option');
+            const response = await http.get<ApiOptionType[]>('/variety_option');
             
             set({
               varietyOptions: response.data,

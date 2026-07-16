@@ -1,4 +1,4 @@
-FROM nginx:1.25-alpine
+FROM nginx:1.28-alpine
 
 # タイムゾーン設定（JST）
 RUN apk add --no-cache tzdata && \

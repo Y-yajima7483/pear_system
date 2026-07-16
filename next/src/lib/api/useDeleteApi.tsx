@@ -1,14 +1,12 @@
 'use client'
 
 import { useCallback, useState } from "react";
-import { AxiosRequestConfig } from "axios";
+import type { AxiosRequestConfig } from "axios";
 import { http, handleApiError } from "./http";
-import { ApiHookResponseType } from "@/types/index";
+import type { ApiHookOptions } from "./http";
+import type { ApiHookResponseType } from "@/types/index";
 
-export default function useDeleteApi<T = unknown>(opts?: {
-  presentError?: (e: any) => void;
-  onUnauthorizedRedirect?: () => void;
-}) {
+export default function useDeleteApi<T = unknown>(opts?: ApiHookOptions) {
   const [loading, setLoading] = useState(false);
 
   const destroy = useCallback(

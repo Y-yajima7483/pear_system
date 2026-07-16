@@ -20,7 +20,8 @@ return new class extends Migration
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
 
-            $table->unique(['shipment_record_detail_id', 'product_id'], 'uq_direct_sale_detail_product');
+            // 同一商品×玉数違い・同一玉数別ロットの複数行を許容するためUNIQUE制約は張らない
+            // （整合性は日別upsertの「丸ごと置換」で担保する）
             $table->index('shipment_record_detail_id');
             $table->index('product_id');
         });

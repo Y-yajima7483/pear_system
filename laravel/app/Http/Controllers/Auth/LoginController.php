@@ -5,14 +5,17 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\User\GetLoginUserResource;
-use Exception;
+use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
+    public function __construct(
+        private readonly AuthFactory $auth,
+    ) {}
+
     /**
      * Handle an authentication attempt.
      */
@@ -22,8 +25,8 @@ class LoginController extends Controller
             $credentials = $request->only(['email', 'password']);
 
             // ガードを指定して認証を試行
-            if (Auth::guard('web')->attempt($credentials)) {
-                $user = Auth::guard('web')->user();
+            if ($this->auth->guard('web')->attempt($credentials)) {
+                $user = $this->auth->guard('web')->user();
                 // セッションIDを再生成
                 $request->session()->regenerate();
 
@@ -40,17 +43,12 @@ class LoginController extends Controller
             return response()->json([
                 'message' => 'ログイン情報が間違っています。',
             ], Response::HTTP_UNAUTHORIZED);
-        } catch (Exception $e) {
-            // Exception::getCode() can return non-integer values, so we need to ensure it's a valid HTTP status code
-            $statusCode = is_int($e->getCode()) && $e->getCode() >= 100 && $e->getCode() < 600 
-                ? $e->getCode() 
-                : Response::HTTP_INTERNAL_SERVER_ERROR;
-            
-            $message = $e->getMessage();
+        } catch (\Throwable $e) {
+            report($e);
 
             return response()->json([
-                'message' => $message,
-            ], $statusCode);
+                'message' => 'ログイン処理に失敗しました。',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -59,7 +57,7 @@ class LoginController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        Auth::guard('web')->logout();
+        $this->auth->guard('web')->logout();
 
         if ($request->hasSession()) {
             $request->session()->invalidate();

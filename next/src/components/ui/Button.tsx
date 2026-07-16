@@ -1,24 +1,30 @@
-interface Props {
-	onClick?: React.MouseEventHandler<HTMLButtonElement>;
-	children: React.ReactNode;
-	type: "button" | "submit";
-	color?: "primary" | "alert" | "success" | "warning" | "info" | "pear" | "border";
-	outline?: boolean;
-	disabled? : boolean;
-	className?: string;
-	form?: string;
-}
+import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
-export default function Button({ onClick, children, type="button", color="primary", outline=false, disabled=false, className="", form }: Props) {
+type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'color'> & {
+  children: ReactNode;
+  color?: 'primary' | 'alert' | 'success' | 'warning' | 'info' | 'pear' | 'border';
+  outline?: boolean;
+};
+
+export default function Button({
+  children,
+  type = 'button',
+  color = 'primary',
+  outline = false,
+  disabled = false,
+  className = '',
+  ...buttonProps
+}: Props) {
   return (
-		<button
-			type={type}
-			onClick={onClick}
-			disabled={disabled}
-			form={form}
-			className={`button-base group ${color} ${disabled ? "disabled" : ""} ${outline ? "outline" : ""} ${className}`}
-			>
-			{children}
-		</button>
-	);
+    <button
+      {...buttonProps}
+      type={type}
+      disabled={disabled}
+      className={`button-base group ${color} ${disabled ? 'disabled' : ''} ${
+        outline ? 'outline' : ''
+      } ${className}`}
+    >
+      {children}
+    </button>
+  );
 }

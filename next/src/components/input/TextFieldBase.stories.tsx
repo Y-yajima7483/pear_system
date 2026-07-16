@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { useState } from 'react';
 import TextFieldBase from './TextFieldBase';
 
@@ -68,7 +68,7 @@ export const WithDefaultValue: Story = {
 };
 
 export const Controlled: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [value, setValue] = useState('制御された値');
     return (
       <TextFieldBase

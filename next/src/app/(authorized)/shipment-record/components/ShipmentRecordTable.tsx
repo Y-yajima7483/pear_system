@@ -8,10 +8,10 @@ import type { ShipmentRecordType, ShipmentTypeType } from '@/types/shipmentRecor
 interface ShipmentRecordTableProps {
   records: ShipmentRecordType[];
   shipmentTypes: ShipmentTypeType[];
-  onEdit: (id: number) => void;
+  onSelect: (recordDate: string) => void;
 }
 
-export default function ShipmentRecordTable({ records, shipmentTypes, onEdit }: ShipmentRecordTableProps) {
+export default function ShipmentRecordTable({ records, shipmentTypes, onSelect }: ShipmentRecordTableProps) {
   const formatDate = (dateStr: string): string => {
     const date = new Date(dateStr);
     return format(date, 'M/d (E)', { locale: ja });
@@ -44,7 +44,11 @@ export default function ShipmentRecordTable({ records, shipmentTypes, onEdit }: 
           </thead>
           <tbody>
             {records.map((record) => (
-              <tr key={record.id}>
+              <tr
+                key={record.id}
+                onClick={() => onSelect(record.record_date)}
+                style={{ cursor: 'pointer' }}
+              >
                 <td>
                   <span className="shipment-record-date">{formatDate(record.record_date)}</span>
                 </td>
@@ -57,9 +61,12 @@ export default function ShipmentRecordTable({ records, shipmentTypes, onEdit }: 
                   <button
                     type="button"
                     className="shipment-record-edit-btn"
-                    onClick={() => onEdit(record.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelect(record.record_date);
+                    }}
                   >
-                    編集
+                    詳細
                   </button>
                 </td>
               </tr>

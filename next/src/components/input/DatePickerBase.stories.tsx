@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { useState } from 'react';
 import DatePickerBase from './DatePickerBase';
 
@@ -23,7 +23,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [value, setValue] = useState<Date | null>(null);
     return (
       <DatePickerBase
@@ -39,7 +39,7 @@ export const Default: Story = {
 };
 
 export const WithPreselectedDate: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [value, setValue] = useState<Date | null>(new Date());
     return (
       <DatePickerBase
@@ -55,7 +55,7 @@ export const WithPreselectedDate: Story = {
 };
 
 export const WithError: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [value, setValue] = useState<Date | null>(null);
     return (
       <DatePickerBase

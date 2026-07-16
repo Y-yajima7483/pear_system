@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { useState } from 'react';
 import TextAreaBase from './TextAreaBase';
 
@@ -52,7 +52,7 @@ export const CustomRows: Story = {
 };
 
 export const Controlled: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [value, setValue] = useState('');
     return (
       <TextAreaBase

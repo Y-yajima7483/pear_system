@@ -49,18 +49,4 @@ class OrderItem extends Model
     {
         return $this->belongsTo(Product::class);
     }
-
-    /**
-     * 小計（product.price × quantity）を取得するアクセサ
-     * priceがnullの場合はnullを返す
-     */
-    public function getSubtotalAttribute(): ?int
-    {
-        // productリレーション未ロード時は必要に応じて遅延ロードされます
-        $price = optional($this->product)->price;
-
-        return is_null($price)
-            ? null
-            : (int) $price * (int) $this->quantity;
-    }
 }

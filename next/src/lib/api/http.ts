@@ -1,110 +1,120 @@
-
-import axios, { AxiosError, AxiosInstance } from "axios";
+import axios from 'axios';
+import type { AxiosInstance } from 'axios';
 
 export type LaravelValidationErrors = Record<string, string[]>;
-export type ApiError =
-  | {
-      status: 422;
-      message: string;
-      errors: LaravelValidationErrors; // Laravelのerrorsバッグ
-    }
-  | {
-      status: 401 | 403 | 404 | 409 | 415 | 429 | 500 | number;
-      message: string; // Laravelのmessageや汎用メッセージ
-      errors?: unknown;
-    };
+
+export type ApiError = {
+  status: number;
+  message: string;
+  errors?: LaravelValidationErrors;
+};
 
 export type ErrorPresenter = (error: ApiError) => void;
 
-// 共通Axiosインスタンス（必要に応じてヘッダ設定）
+export type ApiHookOptions = {
+  presentError?: ErrorPresenter;
+  onUnauthorizedRedirect?: (message: string) => void;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const getMessage = (data: unknown): string | undefined => {
+  if (!isRecord(data)) {
+    return undefined;
+  }
+
+  return typeof data.message === 'string' ? data.message : undefined;
+};
+
+const getValidationErrors = (data: unknown): LaravelValidationErrors | undefined => {
+  if (!isRecord(data) || !isRecord(data.errors)) {
+    return undefined;
+  }
+
+  const entries = Object.entries(data.errors).filter(
+    (entry): entry is [string, string[]] =>
+      Array.isArray(entry[1]) && entry[1].every((message) => typeof message === 'string')
+  );
+
+  return Object.fromEntries(entries);
+};
+
+// Laravel API は nginx/Next と同一オリジンの /api で公開する。
 export const http: AxiosInstance = axios.create({
-  baseURL: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api`,
+  baseURL: '/api',
   withCredentials: true,
+  xsrfCookieName: 'XSRF-TOKEN',
+  xsrfHeaderName: 'X-XSRF-TOKEN',
   headers: {
-    "X-Requested-With": "XMLHttpRequest",
-    "Content-Type": "application/json",
-    Accept: "application/json",
+    'X-Requested-With': 'XMLHttpRequest',
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
   },
 });
 
-// Laravelエラー→統一メッセージ整形
-export function toApiError(e: unknown): ApiError {
-  const axErr = e as AxiosError<any>;
-  const status = axErr?.response?.status ?? 0;
-  const data = axErr?.response?.data;
+/** ログイン前に Sanctum の CSRF Cookie を同一オリジンから取得する。 */
+export const initializeCsrfCookie = async (): Promise<void> => {
+  await http.get('/sanctum/csrf-cookie', { baseURL: '/' });
+};
 
-  // Laravelの422（Validation）は errors オブジェクトが付与される
-  if (status === 422) {
-    const message: string =
-      data?.message ??
-      "入力内容を確認してください。"; // Laravelの標準メッセージが無い場合のフォールバック
-    const errors: LaravelValidationErrors = data?.errors ?? {};
-    return { status: 422, message, errors };
+// Laravelエラー→統一メッセージ整形
+export function toApiError(error: unknown): ApiError {
+  if (!axios.isAxiosError(error)) {
+    return { status: 500, message: 'エラーが発生しました。' };
   }
 
-  // Laravelのその他エラーは message を含むことが多い
-  const message: string =
-    data?.message ??
-    "エラーが発生しました。"; // Fallback
+  const status = error.response?.status ?? 500;
+  const data: unknown = error.response?.data;
+  const message = getMessage(data) ?? (
+    status === 422 ? '入力内容を確認してください。' : 'エラーが発生しました。'
+  );
+  const errors = getValidationErrors(data);
 
-  return { status: status || 500, message, errors: data?.errors };
+  return errors ? { status, message, errors } : { status, message };
 }
 
 // 規定のエラーハンドラ（要件の分岐）
 export function handleApiError(
-  e: unknown,
+  error: unknown,
   opts: {
-    unauthorizedProcess?: (message: string)=> void; // 401でログイン画面へ飛ばす処理を注入
-    process?: ErrorPresenter; // 画面出し用（トースト等）
+    unauthorizedProcess?: (message: string) => void;
+    process?: ErrorPresenter;
   } = {}
-) {
-  const err = toApiError(e);
+): void {
+  const apiError = toApiError(error);
 
-  // 取り消し（Abort）は呼び出し側で握りつぶすのでここでは扱わない
-
-  switch (err.status) {
-    case 422: {
-      // バリデーションエラーを表示（呼び出し側で errors を使ってフィールドごとに表示も可）
+  switch (apiError.status) {
+    case 422:
       opts.process?.({
         status: 422,
-        message: err.message,
-        errors: (err as any).errors ?? {},
+        message: apiError.message,
+        errors: apiError.errors ?? {},
       });
       return;
-    }
-    case 401: {
-      // ログイン画面に遷移
+    case 401:
       if (opts.unauthorizedProcess) {
-        opts.unauthorizedProcess(err.message);
-      } else {
-        window.location.href = "/login";
+        opts.unauthorizedProcess(apiError.message);
+      } else if (typeof window !== 'undefined') {
+        window.location.href = '/login';
       }
       return;
-    }
-    case 429: {
+    case 429:
       opts.process?.({
         status: 429,
-        message: "リクエストが集中しています。しばらくしてから再度お試しください。",
+        message: 'リクエストが集中しています。しばらくしてから再度お試しください。',
       });
       return;
-    }
-    case 403: {
+    case 403:
       opts.process?.({
         status: 403,
-        message: "この操作を行う権限がありません。",
+        message: 'この操作を行う権限がありません。',
       });
       return;
-    }
-    default: {
-      // その他は指定のメッセージ構成で通知
-      const code = err.status;
-      const laravelMessage = err.message ?? "";
-      const joined =
-        `エラーが発生しました。\n` +
-        `${code}\n` +
-        `${laravelMessage}`;
-      opts.process?.({ status: code, message: joined });
-      return;
-    }
+    default:
+      opts.process?.({
+        status: apiError.status,
+        message: `エラーが発生しました。\n${apiError.status}\n${apiError.message}`,
+      });
   }
 }

@@ -13,11 +13,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import Button from "@/components/ui/Button";
-import type { GetOrderListApiResponseContent } from '@/types/order';
+import type { GetOrderListApiResponseContent, OrderMutationApiResponse } from '@/types/order';
 import { orderItemStatus } from '@/types/order';
 import { getOrderItemStatusLabelAndClass } from '@/lib/utils';
 import usePatchApi from '@/lib/api/usePatchApi';
 import { commonApiHookOptions } from '@/lib/api/commonErrorHandlers';
+import { toast } from 'sonner';
 
 interface OrderDetailDialogProps {
   order: GetOrderListApiResponseContent | GetOrderListApiResponseContent<null> | null;
@@ -29,7 +30,10 @@ interface OrderDetailDialogProps {
 
 export default function OrderDetailDialog({ order, open, onOpenChange, onEditClick, onStatusChanged }: OrderDetailDialogProps) {
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
-  const { patch, loading: patchLoading } = usePatchApi<{ status: number }>(commonApiHookOptions);
+  const { patch, loading: patchLoading } = usePatchApi<
+    { status: number },
+    OrderMutationApiResponse
+  >(commonApiHookOptions);
 
   if (!order) return null;
 
@@ -41,9 +45,12 @@ export default function OrderDetailDialog({ order, open, onOpenChange, onEditCli
 
   const handlePickedUp = async () => {
     const result = await patch(`/order/${order.id}/status`, { status: orderItemStatus.PICKED_UP });
-    if (result.success) {
+    if (result.success && result.data.success) {
+      toast.success(result.data.message);
       onOpenChange(false);
       onStatusChanged?.();
+    } else if (result.success) {
+      toast.error(result.data.message);
     }
   };
 
@@ -53,10 +60,13 @@ export default function OrderDetailDialog({ order, open, onOpenChange, onEditCli
 
   const handleCancelConfirm = async () => {
     const result = await patch(`/order/${order.id}/status`, { status: orderItemStatus.CANCELED });
-    if (result.success) {
+    if (result.success && result.data.success) {
+      toast.success(result.data.message);
       setCancelConfirmOpen(false);
       onOpenChange(false);
       onStatusChanged?.();
+    } else if (result.success) {
+      toast.error(result.data.message);
     }
   };
 

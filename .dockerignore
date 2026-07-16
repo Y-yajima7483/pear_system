@@ -1,0 +1,85 @@
+# Version control and local tooling
+.git
+.github
+.gitignore
+.gitattributes
+.vscode
+.idea
+.claude
+.agents
+.codex
+.serena
+
+# Runtime secrets and credentials (examples are documentation only and are
+# deliberately not required by either production Dockerfile)
+.env
+.env.*
+**/.env
+**/.env.*
+**/.npmrc
+**/.ssh
+**/auth.json
+**/*.key
+**/*.pem
+**/*.p12
+**/*.pfx
+**/id_rsa*
+
+# Installed dependencies and generated frontend artifacts
+**/node_modules
+**/.yarn
+**/.pnp.*
+**/.cache
+**/.turbo
+**/.next
+**/out
+**/build
+**/dist
+**/coverage
+**/storybook-static
+**/vendor
+**/*.tsbuildinfo
+
+# Runtime data and generated backend artifacts
+docker/mysql/data
+laravel/public/hot
+laravel/public/storage
+laravel/tests
+laravel/phpunit.xml*
+laravel/database/factories
+laravel/database/seeders
+laravel/storage/app/*
+laravel/storage/logs/*
+laravel/storage/framework/cache/*
+laravel/storage/framework/sessions/*
+laravel/storage/framework/views/*
+laravel/storage/framework/testing/*
+laravel/bootstrap/cache/*
+!laravel/storage/logs/.gitignore
+!laravel/storage/app/.gitignore
+!laravel/storage/framework/cache/.gitignore
+!laravel/storage/framework/sessions/.gitignore
+!laravel/storage/framework/views/.gitignore
+!laravel/storage/framework/testing/.gitignore
+!laravel/bootstrap/cache/.gitignore
+
+# Backups, database exports and private operational material
+backups
+docs
+private
+plans
+**/*.sql
+**/*.sql.gz
+**/*.dump
+**/*.bak
+**/*.sqlite
+**/*.sqlite3
+**/*.tfstate
+**/*.tfstate.*
+
+# Logs and temporary files
+**/*.log
+**/*.tmp
+**/*.temp
+**/cookies.txt
+**/.DS_Store

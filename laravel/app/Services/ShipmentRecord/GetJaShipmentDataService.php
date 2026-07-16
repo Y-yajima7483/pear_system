@@ -33,10 +33,12 @@ class GetJaShipmentDataService extends AbstractService
                 'grades' => $grades,
                 'entries' => $entries,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            report($e);
+
             return [
                 'success' => false,
-                'message' => 'JA出荷データの取得に失敗しました: '.$e->getMessage(),
+                'message' => 'JA出荷データの取得に失敗しました。',
             ];
         }
     }

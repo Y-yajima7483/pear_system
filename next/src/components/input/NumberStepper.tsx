@@ -14,6 +14,7 @@ interface Props<StepperValues extends FieldValues> {
 	step?: number;
 	required?: boolean;
 	disabled?: boolean;
+	accessibleLabel?: string;
 }
 
 export default function NumberStepper<StepperValues extends FieldValues>({
@@ -27,6 +28,7 @@ export default function NumberStepper<StepperValues extends FieldValues>({
 	step,
 	required,
 	disabled,
+	accessibleLabel,
 }: Props<StepperValues>) {
 	return (
 		<Controller
@@ -46,6 +48,7 @@ export default function NumberStepper<StepperValues extends FieldValues>({
 						step={step}
 						required={required}
 						disabled={disabled}
+						accessibleLabel={accessibleLabel}
 					/>
 				);
 			}}

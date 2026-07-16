@@ -7,6 +7,10 @@ export const orderItemStatus = {
 } as const;
 
 export type OrderItemStatusType = (typeof orderItemStatus)[keyof typeof orderItemStatus];
+
+export type OrderMutationApiResponse =
+  | { success: true; message: string }
+  | { success: false; message: string };
 // 店頭受け取り注文一覧取得APIレスポンス
 export interface GetOrderListApiResponseContent<T=string> {
   id: number;

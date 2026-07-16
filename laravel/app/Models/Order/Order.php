@@ -101,26 +101,6 @@ class Order extends Model
     }
 
     /**
-     * 合計金額（各明細の product.price × quantity の合計）
-     * product.price が null の明細は 0 として計算
-     *
-     * ※ N+1 を避けるには with('orderItems.product') で事前ロード推奨
-     */
-    public function getTotalPriceAttribute(): int
-    {
-        if (! $this->relationLoaded('orderItems')) {
-            // 必要に応じて product を同時ロード
-            $this->loadMissing('orderItems.product');
-        }
-
-        return (int) $this->orderItems->sum(function ($item) {
-            $price = optional($item->product)->price ?? 0;
-
-            return (int) $price * (int) $item->quantity;
-        });
-    }
-
-    /**
      * ステータス変更ヘルパ
      */
     public function markPickedUp(): bool

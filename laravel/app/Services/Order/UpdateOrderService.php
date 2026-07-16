@@ -5,6 +5,7 @@ namespace App\Services\Order;
 use App\Http\Resources\Order\UpdateOrderResource;
 use App\Models\Order\Repository\OrderRepositoryInterface;
 use App\Services\AbstractService;
+use App\Services\Order\Exceptions\UnexpectedOrderException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class UpdateOrderService extends AbstractService
@@ -32,12 +33,10 @@ class UpdateOrderService extends AbstractService
                 'success' => false,
                 'message' => '指定された注文が見つかりません。',
             ];
-        } catch (\Exception $e) {
-            // エラー時のレスポンス
-            return [
-                'success' => false,
-                'message' => '注文の更新に失敗しました: '.$e->getMessage(),
-            ];
+        } catch (\Throwable $e) {
+            report($e);
+
+            throw UnexpectedOrderException::update($e);
         }
     }
 }

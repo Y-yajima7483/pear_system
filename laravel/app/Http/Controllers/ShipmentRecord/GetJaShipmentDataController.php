@@ -10,6 +10,8 @@ class GetJaShipmentDataController extends AbstractController
 {
     public function __invoke(GetJaShipmentDataRequest $request, GetJaShipmentDataService $service)
     {
-        return $this->executeApi($request, $service);
+        $response = $service->execute($request->validated());
+
+        return response()->json($response, ($response['success'] ?? false) ? 200 : 500);
     }
 }

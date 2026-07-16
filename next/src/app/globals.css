@@ -498,11 +498,16 @@ input[type="time"]::-webkit-clear-button {
   outline: none;
   cursor: pointer;
   position: relative;
+  font: inherit;
 }
 
 .select-field > .select-trigger > .select-value {
   flex: 1;
   text-align: left;
+}
+
+.select-field > .select-trigger.has-clear > .select-value {
+  padding-right: 1.5rem;
 }
 
 .select-field > .select-trigger > .select-value.placeholder {
@@ -549,10 +554,19 @@ input[type="time"]::-webkit-clear-button {
   padding: 0.5rem var(--pad);
   cursor: pointer;
   transition: background-color 150ms;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
 }
 
-.select-field > .select-dropdown > .select-option:hover {
+.select-field > .select-dropdown > .select-option:hover,
+.select-field > .select-dropdown > .select-option:focus-visible,
+.select-field > .select-dropdown > .select-option[data-active="true"] {
   background-color: var(--gray-100);
+  outline: none;
 }
 
 .select-field > .select-dropdown > .select-option:active {
@@ -936,6 +950,14 @@ input[type="time"]::-webkit-clear-button {
   background: transparent;
   border: none;
   cursor: pointer;
+}
+
+.select-field > .select-clear-btn {
+  position: absolute;
+  top: 50%;
+  right: 1.75rem;
+  z-index: 2;
+  transform: translateY(-50%);
 }
 
 .select-clear-icon {
@@ -2179,7 +2201,7 @@ input[type="time"]::-webkit-clear-button {
 /* カラムヘッダー */
 .ds-column-headers {
   display: grid;
-  grid-template-columns: 180px 1fr 1fr 36px;
+  grid-template-columns: 180px 1fr 1fr 48px;
   gap: 8px;
   padding: 8px 16px;
   font-size: 11px;
@@ -2199,7 +2221,7 @@ input[type="time"]::-webkit-clear-button {
 /* 商品行 */
 .ds-product-row {
   display: grid;
-  grid-template-columns: 180px 1fr 1fr 36px;
+  grid-template-columns: 180px 1fr 1fr 48px;
   gap: 8px;
   align-items: center;
   padding: 10px 16px;
@@ -2234,8 +2256,8 @@ input[type="time"]::-webkit-clear-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
   border-radius: 6px;
   border: 1px solid var(--pear-border);
   background: #fff;
@@ -2253,8 +2275,8 @@ input[type="time"]::-webkit-clear-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
   border-radius: 6px;
   border: 1px solid transparent;
   background: transparent;
@@ -2271,7 +2293,7 @@ input[type="time"]::-webkit-clear-button {
 
 .ds-non-main-add-row {
   display: grid;
-  grid-template-columns: 180px 1fr 1fr 36px;
+  grid-template-columns: 180px 1fr 1fr 48px;
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
@@ -2308,13 +2330,13 @@ input[type="time"]::-webkit-clear-button {
 
   /* 直売品種カード レスポンシブ */
   .ds-product-row {
-    grid-template-columns: 140px 1fr 1fr 32px;
+    grid-template-columns: 140px 1fr 1fr 44px;
     gap: 6px;
     padding: 8px 12px;
   }
 
   .ds-column-headers {
-    grid-template-columns: 140px 1fr 1fr 32px;
+    grid-template-columns: 140px 1fr 1fr 44px;
     padding: 8px 12px;
   }
 
@@ -2329,7 +2351,7 @@ input[type="time"]::-webkit-clear-button {
   }
 
   .ds-product-row {
-    grid-template-columns: 1fr 1fr 32px;
+    grid-template-columns: 1fr 1fr 44px;
     gap: 8px;
     padding: 12px;
   }
@@ -2340,8 +2362,8 @@ input[type="time"]::-webkit-clear-button {
 
   .ds-add-row-btn,
   .ds-remove-row-btn {
-    width: 24px;
-    height: 24px;
+    width: 40px;
+    height: 40px;
   }
 }
 
