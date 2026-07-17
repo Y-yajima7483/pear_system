@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PEAR System データベース構成図</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #18222f;
+      --muted: #657286;
+      --line: #91a0b5;
+      --master: #2563eb;
+      --transaction: #0f766e;
+      --system: #5b6472;
+      --accent: #c2410c;
+      --paper: #f8fafc;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
+      color: var(--ink);
+      background: #e8eef6;
+    }
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 58px;
+      padding: 10px 18px;
+      color: white;
+      background: rgba(15, 23, 42, .96);
+      box-shadow: 0 3px 16px rgba(15, 23, 42, .22);
+    }
+    .toolbar strong { margin-right: auto; font-size: 16px; }
+    .toolbar button {
+      min-width: 42px;
+      height: 36px;
+      padding: 0 12px;
+      border: 1px solid #526076;
+      border-radius: 8px;
+      color: white;
+      background: #273449;
+      font: inherit;
+      cursor: pointer;
+    }
+    .toolbar button:hover { background: #34445d; }
+    #zoomValue { width: 66px; text-align: center; font-variant-numeric: tabular-nums; }
+    .viewport { overflow: auto; min-height: calc(100vh - 58px); padding: 24px; }
+    .scale-wrap { transform-origin: 0 0; }
+    .board {
+      position: relative;
+      width: 5200px;
+      height: 3220px;
+      overflow: hidden;
+      border: 1px solid #cbd5e1;
+      border-radius: 24px;
+      background:
+        linear-gradient(rgba(148,163,184,.09) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148,163,184,.09) 1px, transparent 1px),
+        var(--paper);
+      background-size: 40px 40px;
+      box-shadow: 0 24px 70px rgba(15, 23, 42, .18);
+    }
+    .title-block { position: absolute; left: 80px; top: 54px; z-index: 3; }
+    h1 { margin: 0; font-size: 40px; letter-spacing: .02em; }
+    .subtitle { margin: 9px 0 0; color: var(--muted); font-size: 18px; }
+    .legend {
+      position: absolute;
+      right: 80px;
+      top: 56px;
+      z-index: 3;
+      display: flex;
+      gap: 26px;
+      align-items: center;
+      padding: 16px 22px;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      background: rgba(255,255,255,.94);
+      font-size: 15px;
+    }
+    .legend-item { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+    .swatch { width: 18px; height: 18px; border-radius: 5px; }
+    .swatch.master { background: var(--master); }
+    .swatch.transaction { background: var(--transaction); }
+    .swatch.system { background: var(--system); }
+    .line-sample { width: 38px; border-top: 3px solid #64748b; }
+    .line-sample.logical { border-top-style: dashed; }
+    .section-label {
+      position: absolute;
+      z-index: 3;
+      margin: 0;
+      color: #64748b;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: .13em;
+    }
+    .section-label.master { left: 80px; top: 205px; }
+    .section-label.transaction { left: 80px; top: 1245px; }
+    .section-label.system { left: 80px; top: 2245px; }
+    .relations { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; pointer-events: none; }
+    .relation { fill: none; stroke: #64748b; stroke-width: 4; }
+    .relation.logical { stroke: #94a3b8; stroke-dasharray: 14 11; }
+    .relation-label rect { fill: white; stroke: #cbd5e1; stroke-width: 2; rx: 12; }
+    .relation-label text { font-size: 15px; font-weight: 700; fill: #475569; text-anchor: middle; dominant-baseline: middle; }
+    .entity {
+      position: absolute;
+      z-index: 2;
+      width: 920px;
+      overflow: hidden;
+      border: 2px solid #b7c3d2;
+      border-radius: 17px;
+      background: rgba(255,255,255,.98);
+      box-shadow: 0 10px 30px rgba(15, 23, 42, .11);
+    }
+    .entity.wide { width: 1500px; }
+    .entity.wider { width: 1600px; }
+    .entity.widest { width: 1760px; }
+    .entity.tiny { width: 850px; }
+    .entity header { padding: 17px 22px 15px; color: white; }
+    .entity.master header { background: var(--master); }
+    .entity.transaction header { background: var(--transaction); }
+    .entity.system header { background: var(--system); }
+    .entity h2 { margin: 0; font-size: 23px; line-height: 1.2; }
+    .entity h2 code { margin-left: 10px; color: rgba(255,255,255,.82); font-size: 17px; }
+    .entity .summary { margin: 7px 0 0; color: rgba(255,255,255,.9); font-size: 15px; line-height: 1.45; }
+    .columns-head, .column {
+      display: grid;
+      grid-template-columns: 68px 240px 175px minmax(0, 1fr);
+      align-items: center;
+    }
+    .wide .columns-head, .wide .column,
+    .wider .columns-head, .wider .column,
+    .widest .columns-head, .widest .column {
+      grid-template-columns: 76px 285px 205px minmax(0, 1fr);
+    }
+    .columns-head {
+      min-height: 38px;
+      padding: 0 16px;
+      color: #536176;
+      background: #edf2f7;
+      border-bottom: 1px solid #d7e0ea;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .07em;
+    }
+    .column {
+      min-height: 49px;
+      padding: 7px 16px;
+      border-bottom: 1px solid #e4eaf1;
+      font-size: 14px;
+      line-height: 1.32;
+    }
+    .column:last-child { border-bottom: 0; }
+    .column:nth-child(odd) { background: #fbfdff; }
+    .key { display: flex; flex-wrap: wrap; gap: 4px; }
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #475569;
+      background: #e2e8f0;
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+    .badge.pk { color: #92400e; background: #fef3c7; }
+    .badge.fk { color: #1e40af; background: #dbeafe; }
+    .badge.uq { color: #6b21a8; background: #f3e8ff; }
+    .badge.gen { color: #9a3412; background: #ffedd5; }
+    .physical code { display: block; color: #111827; font-size: 14px; font-weight: 800; }
+    .type { display: block; margin-top: 3px; color: #748197; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; }
+    .ja { font-weight: 700; color: #253349; }
+    .desc { color: #5d6a7c; }
+    .constraints {
+      padding: 11px 18px 13px;
+      color: #5b687b;
+      background: #f1f5f9;
+      border-top: 1px solid #d7e0ea;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .constraints strong { color: #344155; }
+    .note-card {
+      position: absolute;
+      left: 4250px;
+      top: 2860px;
+      z-index: 3;
+      width: 870px;
+      padding: 17px 20px;
+      border: 2px solid #fdba74;
+      border-radius: 14px;
+      color: #7c2d12;
+      background: #fff7ed;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    body.export .toolbar { display: none; }
+    body.export .viewport { min-height: 0; padding: 0; overflow: hidden; }
+    body.export .board { border: 0; border-radius: 0; box-shadow: none; }
+    @media print {
+      .toolbar { display: none; }
+      .viewport { padding: 0; overflow: visible; }
+      .scale-wrap { transform: none !important; }
+      .board { box-shadow: none; }
+      @page { size: A1 landscape; margin: 8mm; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <strong>PEAR System DB構成図</strong>
+    <button type="button" id="zoomOut" aria-label="縮小">−</button>
+    <span id="zoomValue">25%</span>
+    <button type="button" id="zoomIn" aria-label="拡大">＋</button>
+    <button type="button" id="fit">全体表示</button>
+    <button type="button" id="actual">100%</button>
+    <button type="button" onclick="window.print()">印刷 / PDF</button>
+  </div>
+  <main class="viewport" id="viewport">
+    <div class="scale-wrap" id="scaleWrap">
+      <section class="board" id="board" aria-label="PEAR System データベースER図">
+        <div class="title-block">
+          <h1>PEAR System データベース構成図</h1>
+          <p class="subtitle">ER図＋日本語データ辞書 ｜ Laravel migration の現行 migrate:fresh 構成 ｜ 2026-07-16</p>
+        </div>
+        <div class="legend" aria-label="凡例">
+          <span class="legend-item"><span class="swatch master"></span>マスタ／認証</span>
+          <span class="legend-item"><span class="swatch transaction"></span>業務トランザクション</span>
+          <span class="legend-item"><span class="swatch system"></span>Laravel管理</span>
+          <span class="legend-item"><span class="line-sample"></span>外部キー</span>
+          <span class="legend-item"><span class="line-sample logical"></span>論理関連</span>
+        </div>
+        <p class="section-label master">MASTER / AUTHENTICATION</p>
+        <p class="section-label transaction">BUSINESS TRANSACTION</p>
+        <p class="section-label system">LARAVEL FRAMEWORK TABLES</p>
+
+        <svg class="relations" viewBox="0 0 5200 3220" role="img" aria-label="テーブル間リレーション">
+          <defs>
+            <marker id="many" viewBox="0 0 18 18" refX="16" refY="9" markerWidth="18" markerHeight="18" orient="auto-start-reverse">
+              <path d="M1 1 L16 9 L1 17 M1 9 L16 9" fill="none" stroke="#64748b" stroke-width="2"/>
+            </marker>
+            <marker id="one" viewBox="0 0 16 18" refX="3" refY="9" markerWidth="16" markerHeight="18" orient="auto-start-reverse">
+              <path d="M3 1 L3 17 M8 1 L8 17" fill="none" stroke="#64748b" stroke-width="2"/>
+            </marker>
+          </defs>
+          <path class="relation" d="M540 912 V1300" marker-start="url(#one)" marker-end="url(#many)"/>
+          <path class="relation" d="M1000 1580 H1080" marker-start="url(#one)" marker-end="url(#many)"/>
+          <path class="relation" d="M2000 480 H2080" marker-start="url(#one)" marker-end="url(#many)"/>
+          <path class="relation" d="M1540 690 V1135 H3260 V1300" marker-start="url(#one)" marker-end="url(#many)"/>
+          <path class="relation" d="M2540 1080 V1165 H1540 V1300" marker-start="url(#one)" marker-end="url(#many)"/>
+          <path class="relation" d="M2540 1080 V1300" marker-start="url(#one)" marker-end="url(#many)"/>
+          <path class="relation" d="M3540 820 V1300" marker-start="url(#one)" marker-end="url(#many)"/>
+          <path class="relation" d="M4540 690 V1195 H3640 V1300" marker-start="url(#one)" marker-end="url(#many)"/>
+          <path class="relation" d="M3080 1600 H3000" marker-start="url(#one)" marker-end="url(#many)"/>
+          <path class="relation" d="M4080 1580 H4000" marker-start="url(#one)" marker-end="url(#many)"/>
+          <path class="relation logical" d="M270 912 V2170 H830 V2300" marker-end="url(#one)"/>
+          <path class="relation logical" d="M810 912 V2140 H2480 V2300" marker-end="url(#many)"/>
+
+          <g class="relation-label" transform="translate(455 1090)"><rect width="170" height="34"/><text x="85" y="17">SET NULL</text></g>
+          <g class="relation-label" transform="translate(940 1540)"><rect width="200" height="34"/><text x="100" y="17">CASCADE</text></g>
+          <g class="relation-label" transform="translate(1920 440)"><rect width="240" height="34"/><text x="120" y="17">品種 1 : N 商品</text></g>
+          <g class="relation-label" transform="translate(2450 1095)"><rect width="180" height="34"/><text x="90" y="17">RESTRICT</text></g>
+          <g class="relation-label" transform="translate(2925 1560)"><rect width="230" height="34"/><text x="115" y="17">CASCADE</text></g>
+          <g class="relation-label" transform="translate(3930 1540)"><rect width="220" height="34"/><text x="110" y="17">CASCADE</text></g>
+          <g class="relation-label" transform="translate(660 2160)"><rect width="340" height="34"/><text x="170" y="17">emailによる0..1論理対応</text></g>
+          <g class="relation-label" transform="translate(2170 2105)"><rect width="370" height="34"/><text x="185" y="17">ポリモーフィック論理関連</text></g>
+        </svg>
+
+        <article class="entity master" style="left:80px;top:260px;" aria-labelledby="users-title">
+          <header><h2 id="users-title">システム利用者 <code>users</code></h2><p class="summary">PEAR Systemへログインする利用者の認証情報を管理。</p></header>
+          <div class="columns-head"><span>KEY</span><span>物理名 / 型</span><span>日本語ラベル</span><span>説明</span></div>
+          <div class="column"><span class="key"><b class="badge pk">PK</b></span><span class="physical"><code>id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">利用者ID</span><span class="desc">利用者を識別する連番。</span></div>
+          <div class="column"><span></span><span class="physical"><code>name</code><span class="type">VARCHAR(255)</span></span><span class="ja">利用者名</span><span class="desc">画面表示用の名前。</span></div>
+          <div class="column"><span class="key"><b class="badge uq">UQ</b></span><span class="physical"><code>email</code><span class="type">VARCHAR(255)</span></span><span class="ja">ログインメール</span><span class="desc">一意のログイン識別子。</span></div>
+          <div class="column"><span></span><span class="physical"><code>email_verified_at</code><span class="type">TIMESTAMP NULL</span></span><span class="ja">メール確認日時</span><span class="desc">メールアドレス確認済み日時。</span></div>
+          <div class="column"><span></span><span class="physical"><code>password</code><span class="type">VARCHAR(255)</span></span><span class="ja">パスワードハッシュ</span><span class="desc">認証用ハッシュ値。</span></div>
+          <div class="column"><span></span><span class="physical"><code>remember_token</code><span class="type">VARCHAR(100) NULL</span></span><span class="ja">ログイン保持トークン</span><span class="desc">ログイン状態の保持に使用。</span></div>
+          <div class="column"><span></span><span class="physical"><code>created_at</code><span class="type">TIMESTAMP NULL</span></span><span class="ja">登録日時</span><span class="desc">レコード作成日時。</span></div>
+          <div class="column"><span></span><span class="physical"><code>updated_at</code><span class="type">TIMESTAMP NULL</span></span><span class="ja">更新日時</span><span class="desc">最終更新日時。</span></div>
+          <div class="constraints"><strong>関連:</strong> 受取注文の担当利用者。利用者削除時は <strong>orders.user_id = NULL</strong>。</div>
+        </article>
+
+        <article class="entity master" style="left:1080px;top:260px;" aria-labelledby="varieties-title">
+          <header><h2 id="varieties-title">品種マスタ <code>varieties</code></h2><p class="summary">幸水・彩玉・豊水など、梨の品種と表示順を管理。</p></header>
+          <div class="columns-head"><span>KEY</span><span>物理名 / 型</span><span>日本語ラベル</span><span>説明</span></div>
+          <div class="column"><span class="key"><b class="badge pk">PK</b></span><span class="physical"><code>id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">品種ID</span><span class="desc">品種を識別する連番。</span></div>
+          <div class="column"><span class="key"><b class="badge uq">UQ</b></span><span class="physical"><code>name</code><span class="type">VARCHAR(100)</span></span><span class="ja">品種名</span><span class="desc">幸水、彩玉などの名称。</span></div>
+          <div class="column"><span></span><span class="physical"><code>display_order</code><span class="type">SMALLINT UNSIGNED</span></span><span class="ja">表示順</span><span class="desc">画面選択肢の並び順。</span></div>
+          <div class="column"><span></span><span class="physical"><code>created_at</code><span class="type">TIMESTAMP</span></span><span class="ja">登録日時</span><span class="desc">レコード作成日時。</span></div>
+          <div class="column"><span></span><span class="physical"><code>updated_at</code><span class="type">TIMESTAMP</span></span><span class="ja">更新日時</span><span class="desc">自動更新される最終更新日時。</span></div>
+        </article>
+
+        <article class="entity master" style="left:2080px;top:260px;" aria-labelledby="products-title">
+          <header><h2 id="products-title">商品マスタ <code>products</code></h2><p class="summary">品種ごとの箱・袋など、販売形態と販売／配送設定を管理。</p></header>
+          <div class="columns-head"><span>KEY</span><span>物理名 / 型</span><span>日本語ラベル</span><span>説明</span></div>
+          <div class="column"><span class="key"><b class="badge pk">PK</b></span><span class="physical"><code>id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">商品ID</span><span class="desc">商品を識別する連番。</span></div>
+          <div class="column"><span class="key"><b class="badge uq">UQ</b></span><span class="physical"><code>sku</code><span class="type">VARCHAR(64)</span></span><span class="ja">商品コード</span><span class="desc">品種・販売形態を表す一意のSKU。</span></div>
+          <div class="column"><span></span><span class="physical"><code>name</code><span class="type">VARCHAR(191)</span></span><span class="ja">商品名</span><span class="desc">3キロ箱、訳あり袋など。</span></div>
+          <div class="column"><span class="key"><b class="badge fk">FK</b><b class="badge">IDX</b></span><span class="physical"><code>variety_id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">品種ID</span><span class="desc">商品の対象品種。</span></div>
+          <div class="column"><span></span><span class="physical"><code>price</code><span class="type">INT NULL</span></span><span class="ja">販売価格</span><span class="desc">価格。通貨・税込区分・単位は未定義。</span></div>
+          <div class="column"><span></span><span class="physical"><code>is_shipping</code><span class="type">TINYINT(1)</span></span><span class="ja">配送対応</span><span class="desc">配送可能な商品か。</span></div>
+          <div class="column"><span></span><span class="physical"><code>is_active</code><span class="type">TINYINT(1)</span></span><span class="ja">販売有効</span><span class="desc">現在、販売対象として選択可能か。</span></div>
+          <div class="column"><span></span><span class="physical"><code>is_main</code><span class="type">TINYINT(1)</span></span><span class="ja">主要商品</span><span class="desc">直売入力画面での主要商品か。</span></div>
+          <div class="column"><span></span><span class="physical"><code>display_order</code><span class="type">SMALLINT UNSIGNED</span></span><span class="ja">表示順</span><span class="desc">商品選択肢の並び順。</span></div>
+          <div class="column"><span></span><span class="physical"><code>created_at</code><span class="type">TIMESTAMP</span></span><span class="ja">登録日時</span><span class="desc">レコード作成日時。</span></div>
+          <div class="column"><span></span><span class="physical"><code>updated_at</code><span class="type">TIMESTAMP</span></span><span class="ja">更新日時</span><span class="desc">自動更新される最終更新日時。</span></div>
+          <div class="constraints"><strong>FK:</strong> variety_id → varieties.id / ON DELETE未指定（NO ACTION / RESTRICT相当）</div>
+        </article>
+
+        <article class="entity master" style="left:3080px;top:260px;" aria-labelledby="grades-title">
+          <header><h2 id="grades-title">等級マスタ <code>grades</code></h2><p class="summary">等級、販売区分、利用可能な出荷先を管理。</p></header>
+          <div class="columns-head"><span>KEY</span><span>物理名 / 型</span><span>日本語ラベル</span><span>説明</span></div>
+          <div class="column"><span class="key"><b class="badge pk">PK</b></span><span class="physical"><code>id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">等級ID</span><span class="desc">等級を識別する連番。</span></div>
+          <div class="column"><span class="key"><b class="badge uq">UQ</b></span><span class="physical"><code>name</code><span class="type">VARCHAR(50)</span></span><span class="ja">等級名</span><span class="desc">秀、優、良、ロスなど。</span></div>
+          <div class="column"><span></span><span class="physical"><code>type</code><span class="type">ENUM(sales, non_sales)</span></span><span class="ja">販売区分</span><span class="desc">販売対象／非販売を区別。</span></div>
+          <div class="column"><span></span><span class="physical"><code>shipment_scope</code><span class="type">ENUM(both, direct_only, ja_only)</span></span><span class="ja">対象出荷区分</span><span class="desc">直売・JA両方／直売のみ／JAのみ。</span></div>
+          <div class="column"><span></span><span class="physical"><code>sort_order</code><span class="type">INT</span></span><span class="ja">表示順</span><span class="desc">等級の表示・集計順。</span></div>
+          <div class="column"><span></span><span class="physical"><code>created_at</code><span class="type">TIMESTAMP</span></span><span class="ja">登録日時</span><span class="desc">レコード作成日時。</span></div>
+          <div class="column"><span></span><span class="physical"><code>updated_at</code><span class="type">TIMESTAMP</span></span><span class="ja">更新日時</span><span class="desc">自動更新される最終更新日時。</span></div>
+        </article>
+
+        <article class="entity master" style="left:4080px;top:260px;" aria-labelledby="shipment-types-title">
+          <header><h2 id="shipment-types-title">出荷区分マスタ <code>shipment_types</code></h2><p class="summary">直売・JA出荷という販売／出荷経路を管理。</p></header>
+          <div class="columns-head"><span>KEY</span><span>物理名 / 型</span><span>日本語ラベル</span><span>説明</span></div>
+          <div class="column"><span class="key"><b class="badge pk">PK</b></span><span class="physical"><code>id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">出荷区分ID</span><span class="desc">出荷経路を識別する連番。</span></div>
+          <div class="column"><span class="key"><b class="badge uq">UQ</b></span><span class="physical"><code>name</code><span class="type">VARCHAR(50)</span></span><span class="ja">出荷区分名</span><span class="desc">直売またはJA出荷。</span></div>
+          <div class="column"><span></span><span class="physical"><code>sort_order</code><span class="type">INT</span></span><span class="ja">表示順</span><span class="desc">出荷区分の並び順。</span></div>
+          <div class="column"><span></span><span class="physical"><code>created_at</code><span class="type">TIMESTAMP</span></span><span class="ja">登録日時</span><span class="desc">レコード作成日時。</span></div>
+          <div class="column"><span></span><span class="physical"><code>updated_at</code><span class="type">TIMESTAMP</span></span><span class="ja">更新日時</span><span class="desc">自動更新される最終更新日時。</span></div>
+        </article>
+
+        <article class="entity transaction" style="left:80px;top:1300px;" aria-labelledby="orders-title">
+          <header><h2 id="orders-title">受取注文 <code>orders</code></h2><p class="summary">顧客ごとの店頭受取予定、状態、備考を管理する注文ヘッダ。</p></header>
+          <div class="columns-head"><span>KEY</span><span>物理名 / 型</span><span>日本語ラベル</span><span>説明</span></div>
+          <div class="column"><span class="key"><b class="badge pk">PK</b></span><span class="physical"><code>id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">注文ID</span><span class="desc">注文を識別する連番。</span></div>
+          <div class="column"><span></span><span class="physical"><code>customer_name</code><span class="type">VARCHAR(191)</span></span><span class="ja">顧客名</span><span class="desc">商品を受け取る顧客の名前。</span></div>
+          <div class="column"><span class="key"><b class="badge">IDX</b></span><span class="physical"><code>pickup_date</code><span class="type">DATE NULL</span></span><span class="ja">受取予定日</span><span class="desc">NULL時は日付未定。</span></div>
+          <div class="column"><span></span><span class="physical"><code>pickup_time</code><span class="type">TIME NULL</span></span><span class="ja">受取予定時刻</span><span class="desc">NULL時は時刻未定。</span></div>
+          <div class="column"><span class="key"><b class="badge">IDX</b></span><span class="physical"><code>status</code><span class="type">TINYINT UNSIGNED</span></span><span class="ja">受取状況</span><span class="desc">1=未受取、2=受取済、3=キャンセル。</span></div>
+          <div class="column"><span></span><span class="physical"><code>notes</code><span class="type">TEXT NULL</span></span><span class="ja">注文備考</span><span class="desc">注文・受取に関する連絡事項。</span></div>
+          <div class="column"><span class="key"><b class="badge fk">FK</b><b class="badge">IDX</b></span><span class="physical"><code>user_id</code><span class="type">BIGINT UNSIGNED NULL</span></span><span class="ja">担当利用者ID</span><span class="desc">用途は暫定。利用者削除時NULL。</span></div>
+          <div class="column"><span></span><span class="physical"><code>created_at</code><span class="type">TIMESTAMP</span></span><span class="ja">登録日時</span><span class="desc">レコード作成日時。</span></div>
+          <div class="column"><span></span><span class="physical"><code>updated_at</code><span class="type">TIMESTAMP</span></span><span class="ja">更新日時</span><span class="desc">自動更新される最終更新日時。</span></div>
+          <div class="constraints"><strong>FK:</strong> user_id → users.id / ON DELETE SET NULL</div>
+        </article>
+
+        <article class="entity transaction" style="left:1080px;top:1300px;" aria-labelledby="order-items-title">
+          <header><h2 id="order-items-title">受取注文明細 <code>order_items</code></h2><p class="summary">注文に含まれる商品、数量、準備状況を管理。</p></header>
+          <div class="columns-head"><span>KEY</span><span>物理名 / 型</span><span>日本語ラベル</span><span>説明</span></div>
+          <div class="column"><span class="key"><b class="badge pk">PK</b></span><span class="physical"><code>id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">注文明細ID</span><span class="desc">明細を識別する連番。</span></div>
+          <div class="column"><span class="key"><b class="badge fk">FK</b><b class="badge">IDX</b></span><span class="physical"><code>order_id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">注文ID</span><span class="desc">親となる受取注文。</span></div>
+          <div class="column"><span class="key"><b class="badge fk">FK</b><b class="badge">IDX</b></span><span class="physical"><code>product_id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">商品ID</span><span class="desc">注文対象の商品。</span></div>
+          <div class="column"><span></span><span class="physical"><code>quantity</code><span class="type">INT UNSIGNED</span></span><span class="ja">注文数量</span><span class="desc">商品の販売単位数。</span></div>
+          <div class="column"><span></span><span class="physical"><code>is_prepared</code><span class="type">TINYINT(1)</span></span><span class="ja">準備済み</span><span class="desc">受取に向けた商品準備が完了したか。</span></div>
+          <div class="column"><span></span><span class="physical"><code>created_at</code><span class="type">TIMESTAMP</span></span><span class="ja">登録日時</span><span class="desc">レコード作成日時。</span></div>
+          <div class="column"><span></span><span class="physical"><code>updated_at</code><span class="type">TIMESTAMP</span></span><span class="ja">更新日時</span><span class="desc">自動更新される最終更新日時。</span></div>
+          <div class="constraints"><strong>FK:</strong> order_id → orders.id / CASCADE<br><strong>FK:</strong> product_id → products.id / ON DELETE未指定（NO ACTION / RESTRICT相当）</div>
+        </article>
+
+        <article class="entity transaction" style="left:2080px;top:1300px;" aria-labelledby="direct-sale-title">
+          <header><h2 id="direct-sale-title">直売商品別内訳 <code>direct_sale_products</code></h2><p class="summary">直売明細を商品単位・玉数別に分解して管理。</p></header>
+          <div class="columns-head"><span>KEY</span><span>物理名 / 型</span><span>日本語ラベル</span><span>説明</span></div>
+          <div class="column"><span class="key"><b class="badge pk">PK</b></span><span class="physical"><code>id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">直売商品内訳ID</span><span class="desc">内訳行を識別する連番。</span></div>
+          <div class="column"><span class="key"><b class="badge fk">FK</b><b class="badge">IDX</b></span><span class="physical"><code>shipment_record_detail_id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">出荷明細ID</span><span class="desc">親となる直売集計明細。</span></div>
+          <div class="column"><span class="key"><b class="badge fk">FK</b><b class="badge">IDX</b></span><span class="physical"><code>product_id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">商品ID</span><span class="desc">箱・袋などの商品形態。</span></div>
+          <div class="column"><span></span><span class="physical"><code>fruit_quantity</code><span class="type">INT UNSIGNED</span></span><span class="ja">玉数</span><span class="desc">1箱・1袋あたり玉数と推定。</span></div>
+          <div class="column"><span></span><span class="physical"><code>box_quantity</code><span class="type">INT UNSIGNED</span></span><span class="ja">箱／袋数</span><span class="desc">該当する玉数の商品数量。</span></div>
+          <div class="column"><span></span><span class="physical"><code>created_at</code><span class="type">TIMESTAMP</span></span><span class="ja">登録日時</span><span class="desc">レコード作成日時。</span></div>
+          <div class="column"><span></span><span class="physical"><code>updated_at</code><span class="type">TIMESTAMP</span></span><span class="ja">更新日時</span><span class="desc">自動更新される最終更新日時。</span></div>
+          <div class="constraints"><strong>FK:</strong> detail → shipment_record_details.id / CASCADE<br><strong>FK:</strong> product_id → products.id / RESTRICT<br><strong>UQなし:</strong> 同一商品・玉数の複数行を許容。</div>
+        </article>
+
+        <article class="entity transaction" style="left:3080px;top:1300px;" aria-labelledby="details-title">
+          <header><h2 id="details-title">出荷集計明細 <code>shipment_record_details</code></h2><p class="summary">日付・品種・出荷区分・等級ごとの集計数量を管理。</p></header>
+          <div class="columns-head"><span>KEY</span><span>物理名 / 型</span><span>日本語ラベル</span><span>説明</span></div>
+          <div class="column"><span class="key"><b class="badge pk">PK</b></span><span class="physical"><code>id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">出荷明細ID</span><span class="desc">集計明細を識別する連番。</span></div>
+          <div class="column"><span class="key"><b class="badge fk">FK</b><b class="badge">IDX</b></span><span class="physical"><code>shipment_record_id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">出荷記録ID</span><span class="desc">親となる日別出荷記録。</span></div>
+          <div class="column"><span class="key"><b class="badge fk">FK</b><b class="badge">IDX</b></span><span class="physical"><code>variety_id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">品種ID</span><span class="desc">対象となる梨の品種。</span></div>
+          <div class="column"><span class="key"><b class="badge fk">FK</b><b class="badge">IDX</b></span><span class="physical"><code>shipment_type_id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">出荷区分ID</span><span class="desc">直売またはJA出荷。</span></div>
+          <div class="column"><span class="key"><b class="badge fk">FK</b><b class="badge">IDX</b></span><span class="physical"><code>grade_id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">等級ID</span><span class="desc">対象となる等級。</span></div>
+          <div class="column"><span></span><span class="physical"><code>quantity</code><span class="type">INT UNSIGNED</span></span><span class="ja">集計数量</span><span class="desc">品種・出荷先・等級単位の数量。</span></div>
+          <div class="column"><span></span><span class="physical"><code>created_at</code><span class="type">TIMESTAMP</span></span><span class="ja">登録日時</span><span class="desc">レコード作成日時。</span></div>
+          <div class="column"><span></span><span class="physical"><code>updated_at</code><span class="type">TIMESTAMP</span></span><span class="ja">更新日時</span><span class="desc">自動更新される最終更新日時。</span></div>
+          <div class="constraints"><strong>複合UQ:</strong> shipment_record_id + variety_id + shipment_type_id + grade_id<br><strong>削除:</strong> 親の日別記録はCASCADE。品種・出荷区分・等級は未指定（NO ACTION / RESTRICT相当）。</div>
+        </article>
+
+        <article class="entity transaction" style="left:4080px;top:1300px;" aria-labelledby="records-title">
+          <header><h2 id="records-title">日別出荷記録 <code>shipment_records</code></h2><p class="summary">直売・JAを合わせた日単位の出荷記録ヘッダ。</p></header>
+          <div class="columns-head"><span>KEY</span><span>物理名 / 型</span><span>日本語ラベル</span><span>説明</span></div>
+          <div class="column"><span class="key"><b class="badge pk">PK</b></span><span class="physical"><code>id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">出荷記録ID</span><span class="desc">日別記録を識別する連番。</span></div>
+          <div class="column"><span class="key"><b class="badge uq">UQ</b></span><span class="physical"><code>record_date</code><span class="type">DATE</span></span><span class="ja">記録日</span><span class="desc">1日1レコードとなる日付。</span></div>
+          <div class="column"><span class="key"><b class="badge gen">生成</b><b class="badge">IDX</b></span><span class="physical"><code>record_year</code><span class="type">SMALLINT UNSIGNED NULL / STORED</span></span><span class="ja">記録年</span><span class="desc">GENERATED ALWAYS AS YEAR(record_date)。元日付が必須のため実値は非NULL。</span></div>
+          <div class="column"><span></span><span class="physical"><code>total_quantity</code><span class="type">INT UNSIGNED</span></span><span class="ja">出荷合計数量</span><span class="desc">アプリ側で同期する保存値。DB制約・トリガーなし。</span></div>
+          <div class="column"><span></span><span class="physical"><code>notes</code><span class="type">TEXT NULL</span></span><span class="ja">日別備考</span><span class="desc">直売・JAで共有する日単位の備考。</span></div>
+          <div class="column"><span></span><span class="physical"><code>created_at</code><span class="type">TIMESTAMP</span></span><span class="ja">登録日時</span><span class="desc">レコード作成日時。</span></div>
+          <div class="column"><span></span><span class="physical"><code>updated_at</code><span class="type">TIMESTAMP</span></span><span class="ja">更新日時</span><span class="desc">自動更新される最終更新日時。</span></div>
+          <div class="constraints"><strong>IDX:</strong> (record_year, record_date) / record_year は生成列。</div>
+        </article>
+
+        <article class="entity system wide" style="left:80px;top:2300px;" aria-labelledby="password-title">
+          <header><h2 id="password-title">パスワード再設定トークン <code>password_reset_tokens</code></h2><p class="summary">メールアドレス単位のパスワード再設定用トークンを一時保存。</p></header>
+          <div class="columns-head"><span>KEY</span><span>物理名 / 型</span><span>日本語ラベル</span><span>説明</span></div>
+          <div class="column"><span class="key"><b class="badge pk">PK</b></span><span class="physical"><code>email</code><span class="type">VARCHAR(255)</span></span><span class="ja">対象メールアドレス</span><span class="desc">論理的に users.email に対応。FK制約はない。</span></div>
+          <div class="column"><span></span><span class="physical"><code>token</code><span class="type">VARCHAR(255)</span></span><span class="ja">再設定トークン</span><span class="desc">パスワード再設定の照合値。</span></div>
+          <div class="column"><span></span><span class="physical"><code>created_at</code><span class="type">TIMESTAMP NULL</span></span><span class="ja">発行日時</span><span class="desc">トークン生成日時。</span></div>
+        </article>
+
+        <article class="entity system wider" style="left:1680px;top:2300px;" aria-labelledby="tokens-title">
+          <header><h2 id="tokens-title">APIアクセストークン <code>personal_access_tokens</code></h2><p class="summary">Laravel Sanctumのトークン、権限、利用期限を管理。</p></header>
+          <div class="columns-head"><span>KEY</span><span>物理名 / 型</span><span>日本語ラベル</span><span>説明</span></div>
+          <div class="column"><span class="key"><b class="badge pk">PK</b></span><span class="physical"><code>id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">アクセストークンID</span><span class="desc">トークン行を識別する連番。</span></div>
+          <div class="column"><span class="key"><b class="badge">IDX</b></span><span class="physical"><code>tokenable_type</code><span class="type">VARCHAR(255)</span></span><span class="ja">所有者モデル種別</span><span class="desc">ポリモーフィック関連の型。</span></div>
+          <div class="column"><span class="key"><b class="badge">IDX</b></span><span class="physical"><code>tokenable_id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">所有者ID</span><span class="desc">利用者などトークン所有者のID。</span></div>
+          <div class="column"><span></span><span class="physical"><code>name</code><span class="type">VARCHAR(255)</span></span><span class="ja">トークン名</span><span class="desc">用途を識別する名称。</span></div>
+          <div class="column"><span class="key"><b class="badge uq">UQ</b></span><span class="physical"><code>token</code><span class="type">VARCHAR(64)</span></span><span class="ja">トークン保存値</span><span class="desc">一意の認証用照合値。</span></div>
+          <div class="column"><span></span><span class="physical"><code>abilities</code><span class="type">TEXT NULL</span></span><span class="ja">権限一覧</span><span class="desc">トークンに許可した操作。</span></div>
+          <div class="column"><span></span><span class="physical"><code>last_used_at</code><span class="type">TIMESTAMP NULL</span></span><span class="ja">最終使用日時</span><span class="desc">最後に認証へ使用した日時。</span></div>
+          <div class="column"><span></span><span class="physical"><code>expires_at</code><span class="type">TIMESTAMP NULL</span></span><span class="ja">有効期限</span><span class="desc">NULLの場合はDB上期限なし。</span></div>
+          <div class="column"><span></span><span class="physical"><code>created_at</code><span class="type">TIMESTAMP NULL</span></span><span class="ja">発行日時</span><span class="desc">トークン作成日時。</span></div>
+          <div class="column"><span></span><span class="physical"><code>updated_at</code><span class="type">TIMESTAMP NULL</span></span><span class="ja">更新日時</span><span class="desc">最終更新日時。</span></div>
+          <div class="constraints"><strong>複合IDX:</strong> tokenable_type + tokenable_id。物理FKではない。</div>
+        </article>
+
+        <article class="entity system widest" style="left:3360px;top:2300px;" aria-labelledby="failed-title">
+          <header><h2 id="failed-title">失敗ジョブ <code>failed_jobs</code></h2><p class="summary">キュー処理に失敗したジョブの内容と例外情報を保存。</p></header>
+          <div class="columns-head"><span>KEY</span><span>物理名 / 型</span><span>日本語ラベル</span><span>説明</span></div>
+          <div class="column"><span class="key"><b class="badge pk">PK</b></span><span class="physical"><code>id</code><span class="type">BIGINT UNSIGNED</span></span><span class="ja">失敗ジョブID</span><span class="desc">失敗記録を識別する連番。</span></div>
+          <div class="column"><span class="key"><b class="badge uq">UQ</b></span><span class="physical"><code>uuid</code><span class="type">VARCHAR(255)</span></span><span class="ja">ジョブUUID</span><span class="desc">一意のジョブ識別子。</span></div>
+          <div class="column"><span></span><span class="physical"><code>connection</code><span class="type">TEXT</span></span><span class="ja">キュー接続名</span><span class="desc">ジョブを受けた接続設定。</span></div>
+          <div class="column"><span></span><span class="physical"><code>queue</code><span class="type">TEXT</span></span><span class="ja">キュー名</span><span class="desc">投入されたキューの名称。</span></div>
+          <div class="column"><span></span><span class="physical"><code>payload</code><span class="type">LONGTEXT</span></span><span class="ja">ジョブ内容</span><span class="desc">実行対象データ。</span></div>
+          <div class="column"><span></span><span class="physical"><code>exception</code><span class="type">LONGTEXT</span></span><span class="ja">例外情報</span><span class="desc">失敗理由とスタック情報。</span></div>
+          <div class="column"><span></span><span class="physical"><code>failed_at</code><span class="type">TIMESTAMP</span></span><span class="ja">失敗日時</span><span class="desc">失敗時刻。既定値は現在時刻。</span></div>
+        </article>
+
+        <article class="entity system tiny" style="left:3360px;top:2860px;" aria-labelledby="migrations-title">
+          <header><h2 id="migrations-title">マイグレーション履歴 <code>migrations</code></h2><p class="summary">Laravelが適用済みDB変更と実行単位を管理。</p></header>
+          <div class="columns-head"><span>KEY</span><span>物理名 / 型</span><span>日本語ラベル</span><span>説明</span></div>
+          <div class="column"><span class="key"><b class="badge pk">PK</b></span><span class="physical"><code>id</code><span class="type">INT UNSIGNED</span></span><span class="ja">履歴ID</span><span class="desc">適用履歴の連番。</span></div>
+          <div class="column"><span></span><span class="physical"><code>migration</code><span class="type">VARCHAR(255)</span></span><span class="ja">マイグレーション名</span><span class="desc">適用したファイル名。</span></div>
+          <div class="column"><span></span><span class="physical"><code>batch</code><span class="type">INT</span></span><span class="ja">実行バッチ番号</span><span class="desc">同時に適用した実行単位。</span></div>
+        </article>
+
+        <aside class="note-card">
+          <strong>実装上の注記:</strong> 商品外数量は専用カラムを持たず、出荷集計明細の数量と商品別内訳から扱われます。<code>orders.user_id</code> の業務上の意味、<code>products.price</code> の通貨／税込区分、数量の単位、<code>fruit_quantity</code> が「1箱・袋あたり玉数」であることはDB制約だけでは確定しません。
+        </aside>
+      </section>
+    </div>
+  </main>
+  <script>
+    const viewport = document.getElementById('viewport');
+    const wrap = document.getElementById('scaleWrap');
+    const value = document.getElementById('zoomValue');
+    const boardWidth = 5200;
+    const boardHeight = 3220;
+    let zoom = 0.25;
+    function applyZoom(next) {
+      zoom = Math.min(1.5, Math.max(0.12, next));
+      wrap.style.transform = `scale(${zoom})`;
+      wrap.style.width = `${boardWidth * zoom}px`;
+      wrap.style.height = `${boardHeight * zoom}px`;
+      value.textContent = `${Math.round(zoom * 100)}%`;
+    }
+    function fit() {
+      const available = Math.max(320, viewport.clientWidth - 48);
+      applyZoom(available / boardWidth);
+      viewport.scrollTo({ left: 0, top: 0 });
+    }
+    document.getElementById('zoomIn').addEventListener('click', () => applyZoom(zoom + 0.05));
+    document.getElementById('zoomOut').addEventListener('click', () => applyZoom(zoom - 0.05));
+    document.getElementById('fit').addEventListener('click', fit);
+    document.getElementById('actual').addEventListener('click', () => applyZoom(1));
+    window.addEventListener('resize', fit);
+    if (new URLSearchParams(location.search).has('export')) {
+      document.body.classList.add('export');
+      applyZoom(1);
+    } else {
+      fit();
+    }
+  </script>
+</body>
+</html>

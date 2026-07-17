@@ -64,15 +64,25 @@ export default function JaShipmentGrid({ grades, gridData, onCellChange }: JaShi
               </td>
               {grades.map((grade) => {
                 const gradeKey = grade.id.toString();
+                const quantity = entry.grades[gradeKey] ?? 0;
                 return (
                   <td key={grade.id}>
                     <input
                       type="number"
                       className="shipment-num-input"
-                      value={entry.grades[gradeKey] ?? 0}
-                      onChange={(e) =>
-                        onCellChange(dateIndex, gradeKey, parseInt(e.target.value) || 0)
-                      }
+                      value={quantity === 0 ? '' : quantity}
+                      placeholder="0"
+                      onChange={(e) => {
+                        const normalizedValue = e.currentTarget.value.replace(/^0+(?=\d)/, '');
+                        e.currentTarget.value = normalizedValue;
+
+                        const parsedValue = Number.parseInt(normalizedValue, 10);
+                        onCellChange(
+                          dateIndex,
+                          gradeKey,
+                          Number.isNaN(parsedValue) ? 0 : parsedValue
+                        );
+                      }}
                       min={0}
                       aria-label={`${entry.record_date} ${grade.name} 出荷数量`}
                     />

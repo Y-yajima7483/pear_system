@@ -109,5 +109,3 @@ export const useProductOptionStore = create<ProductOptionState>()(
 export const useProductOptions = () => useProductOptionStore((state) => state.productOptions);
 export const useMainProductOptions = () => useProductOptionStore((state) => state.productOptions.filter((p) => p.is_main));
 export const useProductOptionsLoading = () => useProductOptionStore((state) => state.isLoading);
-export const useProductOptionsInitialized = () => useProductOptionStore((state) => state.isInitialized);
-export const useProductOptionsError = () => useProductOptionStore((state) => state.error);

@@ -23,11 +23,7 @@ import usePutApi from '@/lib/api/usePutApi';
 import { commonApiHookOptions } from '@/lib/api/commonErrorHandlers';
 import { directSaleFormSchema } from '@/lib/validation/shipmentRecord';
 import { useVarietyOptionStore, useVarietyOptions } from '@/stores/useVarietyOptionStore';
-import {
-  useProductOptionStore,
-  useProductOptionsError,
-  useProductOptionsInitialized,
-} from '@/stores/useProductOptionStore';
+import { useProductOptionStore } from '@/stores/useProductOptionStore';
 import { useGradeOptionStore, useGradeOptions } from '@/stores/useGradeOptionStore';
 import { toast } from 'sonner';
 import type { GradeApiOptionType } from '@/types';
@@ -105,8 +101,8 @@ export default function ShipmentRecordRegisterDialog({
   const fetchVarietyOptions = useVarietyOptionStore((s) => s.fetchVarietyOptions);
   const fetchProductOptions = useProductOptionStore((s) => s.fetchProductOptions);
   const fetchGradeOptions = useGradeOptionStore((s) => s.fetchGradeOptions);
-  const productOptionsInitialized = useProductOptionsInitialized();
-  const productOptionsError = useProductOptionsError();
+  const productOptionsInitialized = useProductOptionStore((s) => s.isInitialized);
+  const productOptionsError = useProductOptionStore((s) => s.error);
   const varietyOptions = useVarietyOptions();
   const gradeOptions = useGradeOptions();
   const directGradeOptions = useMemo(
