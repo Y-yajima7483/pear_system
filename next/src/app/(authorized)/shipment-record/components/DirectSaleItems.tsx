@@ -37,8 +37,8 @@ export default function DirectSaleItems({ control, errors }: Props) {
 
   // 品種セレクタの選択値
   const [selectedVarietyId, setSelectedVarietyId] = useState<string>('');
-  // 非メイン商品セレクタの選択値（品種IDごと）
-  const [selectedNonMainProductIds, setSelectedNonMainProductIds] = useState<Record<number, string>>({});
+  // 追加商品セレクタの選択値（品種IDごと）
+  const [selectedAdditionalProductIds, setSelectedAdditionalProductIds] = useState<Record<number, string>>({});
 
   const productById = useMemo(
     () => new Map(productOptions.map((product) => [product.value.toString(), product])),
@@ -109,14 +109,14 @@ export default function DirectSaleItems({ control, errors }: Props) {
     [varietyOptions, addedVarietyIds]
   );
 
-  // 品種ごとの未追加・非メイン商品オプション
-  const nonMainProductOptionsMap = useMemo(() => {
+  // 品種ごとの未追加商品オプション
+  const additionalProductOptionsMap = useMemo(() => {
     const addedProductIds = new Set(fields.map((f) => f.product_id));
     const map = new Map<number, OptionType[]>();
 
     addedVarietyIds.forEach((varietyId) => {
       const opts = (productsByVariety.get(varietyId) ?? [])
-        .filter((p) => !p.is_main && !addedProductIds.has(p.value.toString()))
+        .filter((p) => !addedProductIds.has(p.value.toString()))
         .map((p) => ({ label: p.label, value: p.value.toString() }));
       map.set(varietyId, opts);
     });
@@ -154,8 +154,8 @@ export default function DirectSaleItems({ control, errors }: Props) {
     setSelectedVarietyId('');
   }, [selectedVarietyId, productsByVariety, append, appendManualEntries, directGradeOptions]);
 
-  // 非メイン商品追加
-  const handleAddNonMainProduct = useCallback(
+  // 追加商品
+  const handleAddProduct = useCallback(
     (varietyId: number, productId: string) => {
       if (!productId) return;
       const product = productById.get(productId);
@@ -170,7 +170,7 @@ export default function DirectSaleItems({ control, errors }: Props) {
           box_quantity: 0,
         });
       });
-      setSelectedNonMainProductIds((prev) => ({ ...prev, [varietyId]: '' }));
+      setSelectedAdditionalProductIds((prev) => ({ ...prev, [varietyId]: '' }));
     },
     [append, productById]
   );
@@ -198,7 +198,7 @@ export default function DirectSaleItems({ control, errors }: Props) {
         .filter((index) => index !== -1)
         .reverse();
       manualIndicesToRemove.forEach((index) => removeManualEntries(index));
-      setSelectedNonMainProductIds((prev) => {
+      setSelectedAdditionalProductIds((prev) => {
         const next = { ...prev };
         delete next[varietyId];
         return next;
@@ -435,24 +435,24 @@ export default function DirectSaleItems({ control, errors }: Props) {
               )}
             </div>
 
-            {/* 非メイン商品追加 */}
-            {(nonMainProductOptionsMap.get(varietyId) ?? []).length > 0 && (
+            {/* 追加商品 */}
+            {(additionalProductOptionsMap.get(varietyId) ?? []).length > 0 && (
               <div className="ds-non-main-add-row">
                 <SelectBoxBase<DirectSaleFormInputs>
                   name={'direct_sale_items'}
                   inputLabel="商品を追加"
-                  option={nonMainProductOptionsMap.get(varietyId) ?? []}
-                  value={selectedNonMainProductIds[varietyId] || null}
+                  option={additionalProductOptionsMap.get(varietyId) ?? []}
+                  value={selectedAdditionalProductIds[varietyId] || null}
                   onChange={(val) =>
-                    setSelectedNonMainProductIds((prev) => ({ ...prev, [varietyId]: val ?? '' }))
+                    setSelectedAdditionalProductIds((prev) => ({ ...prev, [varietyId]: val ?? '' }))
                   }
                   disabledRemove
                 />
                 <Button
                   type="button"
                   outline
-                  onClick={() => handleAddNonMainProduct(varietyId, selectedNonMainProductIds[varietyId])}
-                  disabled={!selectedNonMainProductIds[varietyId]}
+                  onClick={() => handleAddProduct(varietyId, selectedAdditionalProductIds[varietyId])}
+                  disabled={!selectedAdditionalProductIds[varietyId]}
                   className="ds-non-main-add-btn"
                 >
                   <Plus size={14} /> 追加

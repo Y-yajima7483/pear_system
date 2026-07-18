@@ -6,6 +6,7 @@ import useGetApi from '@/lib/api/useGetApi'
 import usePutApi from '@/lib/api/usePutApi';
 import { overlayStore } from '@/stores/useOverlayStore';
 import type { GetOrderListApiResponse, GetOrderListApiResponseContent } from '@/types/order';
+import { orderItemStatus } from '@/types/order';
 import { commonApiHookOptions } from '@/lib/api/commonErrorHandlers';
 import OrderItemCard from './OrderItemCard';
 import OrderDetailDialog from './OrderDetailDialog';
@@ -50,6 +51,41 @@ interface OrderItemFortnightCalendarProps {
   refreshKey?: number;
   baseDate?: Date;
 }
+
+type PickupOrder = GetOrderListApiResponseContent | GetOrderListApiResponseContent<null>;
+
+const getPickupTimeInMinutes = (pickupTime: string | null) => {
+  if (!pickupTime) return Number.POSITIVE_INFINITY;
+
+  const [hours, minutes] = pickupTime.split(':').map(Number);
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes)) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  return hours * 60 + minutes;
+};
+
+const compareOrdersByPickupPriority = (left: PickupOrder, right: PickupOrder) => {
+  const leftIsPending = left.status === orderItemStatus.PENDING;
+  const rightIsPending = right.status === orderItemStatus.PENDING;
+
+  if (leftIsPending !== rightIsPending) {
+    return leftIsPending ? -1 : 1;
+  }
+
+  if (!leftIsPending) return 0;
+
+  const leftPickupTime = getPickupTimeInMinutes(left.pickup_time);
+  const rightPickupTime = getPickupTimeInMinutes(right.pickup_time);
+
+  if (leftPickupTime === rightPickupTime) return 0;
+
+  return leftPickupTime < rightPickupTime ? -1 : 1;
+};
+
+const sortOrdersByPickupPriority = <T extends PickupOrder>(orders: T[]) => (
+  [...orders].sort(compareOrdersByPickupPriority)
+);
 
 // 曜日を取得
 const getDayOfWeek = (date: Date) => {
@@ -104,10 +140,17 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
       });
       if(res.success) {
         const { unreserved_data, ...dateBasedData } = res.data;
+        const dateOrders = dateBasedData as Record<string, GetOrderListApiResponseContent[]>;
         setUnreservedData(unreserved_data);
-        const dates = Object.keys(dateBasedData).sort();
+        const dates = Object.keys(dateOrders).sort();
+        const sortedDateBasedData = Object.fromEntries(
+          Object.entries(dateOrders).map(([date, orders]) => [
+            date,
+            sortOrdersByPickupPriority(orders),
+          ])
+        );
         setDateKeys(dates);
-        setOrderData(dateBasedData as {[key: string]: Array<GetOrderListApiResponseContent>});
+        setOrderData(sortedDateBasedData);
       }
     } finally {
       if (!isInitialLoading) {
@@ -319,6 +362,12 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
       closeOverlay();
     }
 
+    setOrderData(prev => Object.fromEntries(
+      Object.entries(prev).map(([date, orders]) => [
+        date,
+        sortOrdersByPickupPriority(orders),
+      ])
+    ));
     setActiveId(null);
     dragStartStateRef.current = { sourceContainer: null, item: null };
   };
@@ -395,8 +444,8 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
   const todayKey = format(new Date(), 'yyyy-MM-dd');
   const todayOrders = orderData[todayKey]?.length || 0;
 
-  // 日付列の最小高さを計算（カード1枚約100px、3枚分の余白を追加）
-  const CARD_HEIGHT = 100;
+  // 日付列の最小高さを計算（カード1枚約120px、3枚分の余白を追加）
+  const CARD_HEIGHT = 120;
   const EXTRA_CARDS = 3;
   const MIN_HEIGHT = 720;
   const calculateColumnHeight = (itemCount: number) => {

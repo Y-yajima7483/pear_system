@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import type { FieldValues, UseFormTrigger, FieldPath } from "react-hook-form";
 
 interface Props<ESFieldValues extends FieldValues> {
@@ -25,7 +25,11 @@ export default function TimeSelectBase<ESFieldValues extends FieldValues>({
   max = "21:00",
 }: Props<ESFieldValues>) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const previousValueRef = useRef(value || "");
 
+  useEffect(() => {
+    previousValueRef.current = value || "";
+  }, [value]);
 
   // 15分刻みに丸める関数
   const roundToQuarterHour = (time: string): string => {
@@ -40,24 +44,42 @@ export default function TimeSelectBase<ESFieldValues extends FieldValues>({
     return `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
   };
 
+  const isValidHour = (hour: string): boolean => {
+    if (!/^\d{2}$/.test(hour)) return false;
+
+    const hourNumber = Number(hour);
+    const minHour = Number(min.split(':')[0]);
+    const maxHour = Number(max.split(':')[0]);
+
+    return hourNumber >= minHour && hourNumber <= maxHour;
+  };
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = event.target.value;
     
     if (!rawValue) {
+      previousValueRef.current = "";
       onChange?.(null);
       trigger?.(name);
       return;
     }
 
-    // 15分刻みに丸める
-    const roundedValue = roundToQuarterHour(rawValue);
+    const [hour] = rawValue.split(':');
+    const [previousHour] = previousValueRef.current.split(':');
+    const hourWasChanged = hour !== previousHour;
+
+    // HHが入力・変更された場合は、分を00に初期化する
+    const normalizedValue = hourWasChanged && isValidHour(hour)
+      ? `${hour}:00`
+      : roundToQuarterHour(rawValue);
     
     // 値を設定
     if (inputRef.current) {
-      inputRef.current.value = roundedValue;
+      inputRef.current.value = normalizedValue;
     }
     
-    onChange?.(roundedValue);
+    previousValueRef.current = normalizedValue;
+    onChange?.(normalizedValue);
     trigger?.(name);
   };
 

@@ -18,6 +18,10 @@ export function getOrderItemStatusLabelAndClass(status: OrderItemStatusType) {
   return orderItemStatusConfig[status] ?? { label: '未受取', className: '' };
 }
 
+export function formatPickupTime(pickupTime: string | null) {
+  return pickupTime ? pickupTime.slice(0, 5) : '未定';
+}
+
 // SelectBox用のステータスオプション配列
 export const orderItemStatusOptions: ApiOptionType[] = Object.entries(orderItemStatusConfig).map(
   ([value, { label }]) => ({ label, value: Number(value) })

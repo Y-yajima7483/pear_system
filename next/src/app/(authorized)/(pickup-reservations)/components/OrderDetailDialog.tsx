@@ -15,7 +15,7 @@ import {
 import Button from "@/components/ui/Button";
 import type { GetOrderListApiResponseContent, OrderMutationApiResponse } from '@/types/order';
 import { orderItemStatus } from '@/types/order';
-import { getOrderItemStatusLabelAndClass } from '@/lib/utils';
+import { formatPickupTime, getOrderItemStatusLabelAndClass } from '@/lib/utils';
 import usePatchApi from '@/lib/api/usePatchApi';
 import { commonApiHookOptions } from '@/lib/api/commonErrorHandlers';
 import { toast } from 'sonner';
@@ -102,6 +102,10 @@ export default function OrderDetailDialog({ order, open, onOpenChange, onEditCli
                 <div className="flex items-start">
                   <span className="text-sm font-medium text-gray-700 min-w-[100px]">受取日</span>
                   <span className="text-sm text-gray-900">{pickupDateFormatted}</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="text-sm font-medium text-gray-700 min-w-[100px]">受取時間</span>
+                  <span className="text-sm text-gray-900">{formatPickupTime(order.pickup_time)}</span>
                 </div>
                 <div className="flex items-center">
                   <span className="text-sm font-medium text-gray-700 min-w-[100px]">ステータス</span>

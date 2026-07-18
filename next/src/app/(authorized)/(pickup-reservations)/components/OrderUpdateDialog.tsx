@@ -46,6 +46,14 @@ interface OrderUpdateRequestType {
   status: OrderFormInputs['status'];
 }
 
+// DBのTIME型から返る秒付きの値を、フォームで扱うHH:mm形式に変換する
+const normalizePickupTime = (pickupTime: string | null): string => {
+  if (!pickupTime) return '';
+
+  const match = pickupTime.match(/^(\d{2}:\d{2}):\d{2}$/);
+  return match ? match[1] : pickupTime;
+};
+
 export default function OrderUpdateDialog({
   orderData,
   onOrderUpdated,
@@ -80,7 +88,7 @@ export default function OrderUpdateDialog({
       customer_name: data.customer_name,
       notes: data.notes || '',
       pickup_date: data.pickup_date ? new Date(data.pickup_date) : '',
-      pickup_time: data.pickup_time || '',
+      pickup_time: normalizePickupTime(data.pickup_time),
       items,
       status: data.status,
     };

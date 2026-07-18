@@ -1,7 +1,8 @@
 import type { GetOrderListApiResponseContent } from '@/types/order';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { getOrderItemStatusLabelAndClass } from '@/lib/utils';
+import { Clock } from 'lucide-react';
+import { formatPickupTime, getOrderItemStatusLabelAndClass } from '@/lib/utils';
 
 interface OrderItemCardProps {
   data: GetOrderListApiResponseContent | GetOrderListApiResponseContent<null>;
@@ -58,13 +59,19 @@ export default function OrderItemCard({data, onDetailClick}: OrderItemCardProps)
           </span>
         </div>
 
-        {/* Row 2: 商品サマリー */}
+        {/* Row 2: 受取時間 */}
+        <div className="mb-1.5 flex items-center gap-1 text-xs font-medium pear-text-secondary">
+          <Clock aria-hidden="true" className="size-3.5" />
+          <span>受取時間 {formatPickupTime(data.pickup_time)}</span>
+        </div>
+
+        {/* Row 3: 商品サマリー */}
         <div className="text-xs whitespace-nowrap overflow-hidden text-ellipsis pear-text-secondary mb-2">
           {formatItems(data.items)}
         </div>
       </div>
 
-      {/* Row 3: 詳細ボタン（下部） */}
+      {/* Row 4: 詳細ボタン（下部） */}
       <button
         type="button"
         onClick={(e) => {
