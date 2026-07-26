@@ -31,7 +31,8 @@ return [
     |
     */
 
-    'lifetime' => env('SESSION_LIFETIME', 120),
+    // 60日（2ヶ月）を分で指定。実行環境では SESSION_LIFETIME で上書き可能。
+    'lifetime' => env('SESSION_LIFETIME', 86400),
 
     'expire_on_close' => false,
 

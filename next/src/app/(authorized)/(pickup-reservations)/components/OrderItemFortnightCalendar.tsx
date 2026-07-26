@@ -549,7 +549,7 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
         {/* Calendar Grid */}
         <div
           ref={calendarScrollRef}
-          className="calendar-grid flex-1 overflow-x-auto overflow-y-auto pear-scrollbar max-h-[calc(100vh-280px)]"
+          className="calendar-grid min-w-0 min-h-0 flex-1 overflow-x-auto overflow-y-auto pear-scrollbar max-h-[calc(100dvh-280px)]"
         >
           <div className="min-w-[2240px]">
             {/* Day Headers */}
