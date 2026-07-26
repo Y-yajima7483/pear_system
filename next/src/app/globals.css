@@ -332,6 +332,7 @@ input[type="time"]::-webkit-clear-button {
   --pad: .45rem;
   position: relative;
   width: auto;
+  min-width: 0;
 }
 
 .text-field > label {
@@ -353,6 +354,7 @@ input[type="time"]::-webkit-clear-button {
   border: 1px solid var(--border-default);
   color: inherit;
   width: 100%;
+  min-width: 0;
   outline: none;
 }
 
@@ -589,6 +591,7 @@ input[type="time"]::-webkit-clear-button {
   --pad: .45rem;
   position: relative;
   width: auto;
+  min-width: 0;
 }
 
 .date-picker .date-picker-label {
@@ -610,6 +613,7 @@ input[type="time"]::-webkit-clear-button {
   border: 1px solid var(--border-default);
   color: inherit;
   width: 100%;
+  min-width: 0;
   outline: none;
   @apply w-full flex items-center justify-between;
 }

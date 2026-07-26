@@ -5,9 +5,24 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "$0")" && pwd -P)"
+DEPLOY_ENV_FILE="${DEPLOY_ENV_FILE:-}"
 
 # shellcheck source=lib/private-env.sh
 source "${SCRIPT_DIR}/lib/private-env.sh"
+
+# A cron/manual invocation may provide all backup settings through the same
+# protected private environment file used by the native deploy entry point.
+# Load it before checking required values so every invocation path has the same
+# source of truth. The deploy parent instead passes an empty DEPLOY_ENV_FILE and
+# explicitly exports the fixed values it already loaded and validated.
+if [ -n "$DEPLOY_ENV_FILE" ]; then
+    requested_deploy_env_file="$DEPLOY_ENV_FILE"
+    load_private_env_file "$requested_deploy_env_file"
+    DEPLOY_ENV_FILE="$requested_deploy_env_file"
+fi
+
+# Load after the private environment so an operator-specific lock location can
+# be supplied without publishing it in this repository.
 # shellcheck source=lib/maintenance-lock.sh
 source "${SCRIPT_DIR}/lib/maintenance-lock.sh"
 
@@ -118,7 +133,10 @@ if [ -n "$RCLONE_DESTINATION" ]; then
         exit 1
     fi
 
-    rclone copyto "$BACKUP_FILE" "${RCLONE_DESTINATION%/}/$(basename -- "$BACKUP_FILE")"
+    if ! rclone copyto "$BACKUP_FILE" "${RCLONE_DESTINATION%/}/$(basename -- "$BACKUP_FILE")"; then
+        echo "[ERROR] Remote backup copy failed" >&2
+        exit 1
+    fi
 fi
 
 if [ -n "$BACKUP_RESULT_FILE" ]; then

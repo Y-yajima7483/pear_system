@@ -58,6 +58,22 @@ if [ -z "$load_line" ] || [ -z "$required_line" ] || [ "$load_line" -ge "$requir
     exit 1
 fi
 
+native_deploy_load_line="$(rg -n 'load_private_env_file "\$requested_deploy_env_file"' "${PROJECT_DIR}/scripts/deploy-native.sh" | head -n 1 | cut -d: -f1)"
+native_deploy_required_line="$(rg -n 'APP_DIR:\?' "${PROJECT_DIR}/scripts/deploy-native.sh" | head -n 1 | cut -d: -f1)"
+if [ -z "$native_deploy_load_line" ] || [ -z "$native_deploy_required_line" ] \
+    || [ "$native_deploy_load_line" -ge "$native_deploy_required_line" ]; then
+    echo "Native deploy does not source its private environment before APP_DIR checks" >&2
+    exit 1
+fi
+
+native_backup_load_line="$(rg -n 'load_private_env_file "\$requested_deploy_env_file"' "${PROJECT_DIR}/scripts/backup-db-native.sh" | head -n 1 | cut -d: -f1)"
+native_backup_required_line="$(rg -n 'DB_NAME:\?' "${PROJECT_DIR}/scripts/backup-db-native.sh" | head -n 1 | cut -d: -f1)"
+if [ -z "$native_backup_load_line" ] || [ -z "$native_backup_required_line" ] \
+    || [ "$native_backup_load_line" -ge "$native_backup_required_line" ]; then
+    echo "Native backup does not source its private environment before DB_NAME checks" >&2
+    exit 1
+fi
+
 for deploy_script in deploy.sh deploy-native.sh; do
     if ! rg -q 'git status --porcelain --untracked-files=normal' "${PROJECT_DIR}/scripts/${deploy_script}"; then
         echo "${deploy_script} does not reject normal untracked files" >&2

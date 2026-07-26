@@ -6,6 +6,19 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "$0")" && pwd -P)"
 DEPLOY_ENV_FILE="${DEPLOY_ENV_FILE:-}"
+DEPLOY_REVISION="${DEPLOY_REVISION:-}"
+
+: "${DEPLOY_ENV_FILE:?DEPLOY_ENV_FILE must explicitly identify the protected private deployment environment}"
+: "${DEPLOY_REVISION:?DEPLOY_REVISION must be supplied for this release}"
+
+# The private environment may contain operational defaults, but the revision is
+# an invocation-time approval and must not be overridden by that file.
+requested_deploy_revision="$DEPLOY_REVISION"
+
+# Authentication smoke credentials belong only in AUTH_SMOKE_ENV_FILE. Remove
+# legacy ambient values before sourcing the deployment environment so they
+# cannot be inherited by release commands.
+unset AUTH_SMOKE_EMAIL AUTH_SMOKE_PASSWORD
 
 # shellcheck source=lib/private-env.sh
 source "${SCRIPT_DIR}/lib/private-env.sh"
@@ -14,11 +27,16 @@ source "${SCRIPT_DIR}/lib/https-origin.sh"
 # shellcheck source=lib/revision.sh
 source "${SCRIPT_DIR}/lib/revision.sh"
 
-if [ -n "$DEPLOY_ENV_FILE" ]; then
-    requested_deploy_env_file="$DEPLOY_ENV_FILE"
-    load_private_env_file "$requested_deploy_env_file"
-    DEPLOY_ENV_FILE="$requested_deploy_env_file"
+requested_deploy_env_file="$DEPLOY_ENV_FILE"
+load_private_env_file "$requested_deploy_env_file"
+if [ "${AUTH_SMOKE_EMAIL+x}" = "x" ] || [ "${AUTH_SMOKE_PASSWORD+x}" = "x" ]; then
+    unset AUTH_SMOKE_EMAIL AUTH_SMOKE_PASSWORD
+    echo "[ERROR] Legacy authentication smoke credentials must be moved from DEPLOY_ENV_FILE to AUTH_SMOKE_ENV_FILE" >&2
+    exit 1
 fi
+DEPLOY_ENV_FILE="$requested_deploy_env_file"
+DEPLOY_REVISION="$requested_deploy_revision"
+export DEPLOY_ENV_FILE DEPLOY_REVISION
 
 # Load after the private environment so an operator-specific lock location can
 # be supplied without publishing it in this repository.
@@ -36,6 +54,7 @@ source "${SCRIPT_DIR}/lib/maintenance-lock.sh"
 : "${PHP_FPM_SERVICE:?PHP_FPM_SERVICE must be set by the private deployment environment}"
 : "${PROXY_SERVICE:?PROXY_SERVICE must be set by the private deployment environment}"
 : "${AUTH_SMOKE_SCRIPT:?AUTH_SMOKE_SCRIPT must point to a private executable smoke test}"
+: "${AUTH_SMOKE_ENV_FILE:?AUTH_SMOKE_ENV_FILE must point to the protected authentication smoke environment}"
 
 BACKUP_DB_PORT="${BACKUP_DB_PORT:-3306}"
 
@@ -60,7 +79,7 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-for command_name in git composer php yarn curl gzip mktemp systemctl; do
+for command_name in git composer php yarn curl gzip mktemp sudo systemctl; do
     if ! command -v "$command_name" >/dev/null 2>&1; then
         echo "[ERROR] Required command is unavailable: ${command_name}" >&2
         exit 1
@@ -94,6 +113,16 @@ for service_name in "$NEXT_SERVICE" "$PHP_FPM_SERVICE" "$PROXY_SERVICE"; do
         exit 1
     fi
 done
+
+if [ "$NEXT_SERVICE" != "pear-next.service" ] \
+    || [ "$PHP_FPM_SERVICE" != "php8.4-fpm.service" ] \
+    || [ "$PROXY_SERVICE" != "nginx.service" ]; then
+    echo "[ERROR] Native deployment service identifiers must use the approved services" >&2
+    exit 1
+fi
+
+validate_private_file "$AUTH_SMOKE_ENV_FILE"
+validate_private_file "$AUTH_SMOKE_SCRIPT"
 
 if [ ! -x "$AUTH_SMOKE_SCRIPT" ]; then
     echo "[ERROR] AUTH_SMOKE_SCRIPT is not executable" >&2
@@ -131,6 +160,14 @@ cd -- "${APP_DIR}/next"
 yarn install --immutable
 NEXT_PUBLIC_APP_URL="$APP_ORIGIN" NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=1536}" yarn build
 
+mkdir -p -- .next/standalone/public .next/standalone/.next/static
+cp -a -- public/. .next/standalone/public/
+cp -a -- .next/static/. .next/standalone/.next/static/
+if [ ! -f .next/standalone/server.js ]; then
+    echo "[ERROR] Next.js standalone server entrypoint is missing" >&2
+    exit 1
+fi
+
 acquire_maintenance_lock
 
 echo "[$(date -u +%FT%TZ)] Validating the effective Laravel production and database configuration..."
@@ -145,7 +182,8 @@ TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/pear-deploy.XXXXXX")"
 backup_result="${TEMP_DIR}/backup-result"
 
 echo "[$(date -u +%FT%TZ)] Creating the pre-migration backup..."
-BACKUP_RESULT_FILE="$backup_result" \
+DEPLOY_ENV_FILE="" \
+    BACKUP_RESULT_FILE="$backup_result" \
     DB_NAME="$DB_NAME" \
     BACKUP_DIR="$BACKUP_DIR" \
     MYSQL_DEFAULTS_FILE="$MYSQL_DEFAULTS_FILE" \
@@ -169,17 +207,29 @@ php artisan route:cache
 php artisan view:cache
 
 echo "[$(date -u +%FT%TZ)] Restarting application services..."
-systemctl restart "$NEXT_SERVICE"
-systemctl reload "$PHP_FPM_SERVICE"
-systemctl reload "$PROXY_SERVICE"
+sudo -n systemctl restart "$NEXT_SERVICE"
+sudo -n systemctl reload "$PHP_FPM_SERVICE"
+sudo -n systemctl reload "$PROXY_SERVICE"
 
 health_url="${APP_ORIGIN%/}/api/health"
 csrf_url="${APP_ORIGIN%/}/sanctum/csrf-cookie"
+local_login_url="http://127.0.0.1:3000/login"
+external_login_url="${APP_ORIGIN%/}/login"
 csrf_headers="${TEMP_DIR}/csrf-headers"
 csrf_cookies="${TEMP_DIR}/csrf-cookies"
 
-curl --fail --silent --show-error --retry 5 --retry-delay 1 "$health_url" >/dev/null
-curl --fail --silent --show-error --retry 5 --retry-delay 1 \
+curl --fail --silent --show-error --connect-timeout 3 --max-time 5 \
+    --retry 15 --retry-delay 2 --retry-max-time 60 --retry-connrefused \
+    "$local_login_url" >/dev/null
+systemctl is-active "$NEXT_SERVICE" >/dev/null
+curl --fail --silent --show-error --connect-timeout 3 --max-time 5 \
+    --retry 15 --retry-delay 2 --retry-max-time 60 --retry-connrefused \
+    "$external_login_url" >/dev/null
+curl --fail --silent --show-error --connect-timeout 3 --max-time 5 \
+    --retry 15 --retry-delay 2 --retry-max-time 60 --retry-connrefused \
+    "$health_url" >/dev/null
+curl --fail --silent --show-error --connect-timeout 3 --max-time 5 \
+    --retry 15 --retry-delay 2 --retry-max-time 60 --retry-connrefused \
     --dump-header "$csrf_headers" --cookie-jar "$csrf_cookies" --output /dev/null "$csrf_url"
 
 if ! grep -qi '^set-cookie:[[:space:]]*XSRF-TOKEN=' "$csrf_headers"; then
