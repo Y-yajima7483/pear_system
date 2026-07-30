@@ -83,10 +83,13 @@ export default function TimeSelectBase<ESFieldValues extends FieldValues>({
     trigger?.(name);
   };
 
+  const isEmpty = !value;
+
   return (
-    <div className={`text-field ${errorMessage ? "error" : ""}`}>
+    <div className={`text-field time-field ${errorMessage ? "error" : ""}`}>
       <input
         ref={inputRef}
+        className={isEmpty ? "time-field-input--empty" : undefined}
         type="time"
         id={`time-field-${name}`}
         placeholder={inputLabel}
@@ -96,6 +99,11 @@ export default function TimeSelectBase<ESFieldValues extends FieldValues>({
         min={min}
         max={max}
       />
+      {isEmpty && !inputLabel && (
+        <span className="time-field-placeholder" aria-hidden="true">
+          --:--
+        </span>
+      )}
       <label htmlFor={`time-field-${name}`}>{inputLabel}</label>
       {!!errorMessage && <p>{errorMessage}</p>}
     </div>

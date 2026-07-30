@@ -375,6 +375,30 @@ input[type="time"]::-webkit-clear-button {
   border-color: var(--primary);
 }
 
+.time-field > input.time-field-input--empty {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* iPad Safariのtime入力が持つ固有幅でフォーム外へはみ出さないようにする */
+.time-field > input[type="time"] {
+  display: block;
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+.time-field-placeholder {
+  position: absolute;
+  left: var(--pad);
+  top: 50%;
+  z-index: 1;
+  transform: translateY(-50%);
+  color: inherit;
+  line-height: 1.5;
+  pointer-events: none;
+}
+
 .text-field__suffix {
   position: absolute;
   right: var(--pad);

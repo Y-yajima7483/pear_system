@@ -154,6 +154,16 @@ export default function OrderDetailDialog({ order, open, onOpenChange, onEditCli
               </div>
             </div>
           </div>
+
+          {/* 備考 */}
+          {order.notes && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-gray-500">備考</h3>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-sm text-gray-900 whitespace-pre-wrap">{order.notes}</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {order.status !== orderItemStatus.CANCELED && (

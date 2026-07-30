@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useCallback, useEffect, useState, useRef } from 'react'
 import { format } from 'date-fns';
 import useGetApi from '@/lib/api/useGetApi'
 import usePutApi from '@/lib/api/usePutApi';
@@ -17,7 +17,8 @@ import {
   DndContext,
   closestCenter,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -53,6 +54,13 @@ interface OrderItemFortnightCalendarProps {
 }
 
 type PickupOrder = GetOrderListApiResponseContent | GetOrderListApiResponseContent<null>;
+type OrderData = Record<string, GetOrderListApiResponseContent[]>;
+type DragStartState = {
+  sourceContainer: string | null;
+  item: PickupOrder | null;
+  orderData: OrderData;
+  unreservedData: GetOrderListApiResponseContent<null>[];
+};
 
 const getPickupTimeInMinutes = (pickupTime: string | null) => {
   if (!pickupTime) return Number.POSITIVE_INFINITY;
@@ -98,7 +106,7 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
   const {update, loading} = usePutApi(commonApiHookOptions);
   const { get: getOrderList } = useGetApi<GetOrderListApiResponse>(commonApiHookOptions);
   const [dateKeys, setDateKeys] = useState<string[]>([]);
-  const [orderData, setOrderData] = useState<{[key: string]:Array<GetOrderListApiResponseContent>}>({});
+  const [orderData, setOrderData] = useState<OrderData>({});
   const [unreservedData, setUnreservedData] = useState<Array<GetOrderListApiResponseContent<null>>>([]);
   const [activeId, setActiveId] = useState<number | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<GetOrderListApiResponseContent | GetOrderListApiResponseContent<null> | null>(null);
@@ -109,13 +117,39 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const prevBaseDateRef = useRef<Date>(baseDate);
   const calendarScrollRef = useRef<HTMLDivElement>(null);
-  const dragStartStateRef = useRef<{
-    sourceContainer: string | null;
-    item: GetOrderListApiResponseContent | GetOrderListApiResponseContent<null> | null;
-  }>({ sourceContainer: null, item: null });
+  const dragStartStateRef = useRef<DragStartState>({
+    sourceContainer: null,
+    item: null,
+    orderData: {},
+    unreservedData: [],
+  });
+
+  const clearDragStartState = () => {
+    dragStartStateRef.current = {
+      sourceContainer: null,
+      item: null,
+      orderData: {},
+      unreservedData: [],
+    };
+  };
+
+  const canScrollCalendar = useCallback(
+    (element: Element) => element === calendarScrollRef.current,
+    []
+  );
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 300,
+        tolerance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -203,7 +237,14 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
       }
     }
 
-    dragStartStateRef.current = { sourceContainer, item };
+    dragStartStateRef.current = {
+      sourceContainer,
+      item,
+      orderData: Object.fromEntries(
+        Object.entries(orderData).map(([date, orders]) => [date, [...orders]])
+      ),
+      unreservedData: [...unreservedData],
+    };
   };
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -369,7 +410,19 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
       ])
     ));
     setActiveId(null);
-    dragStartStateRef.current = { sourceContainer: null, item: null };
+    clearDragStartState();
+  };
+
+  const handleDragCancel = async (): Promise<void> => {
+    const snapshot = dragStartStateRef.current;
+
+    if (snapshot.sourceContainer) {
+      setOrderData(snapshot.orderData);
+      setUnreservedData(snapshot.unreservedData);
+    }
+    setActiveId(null);
+    clearDragStartState();
+    await fetchOrderData();
   };
 
   const getActiveItem = () => {
@@ -472,17 +525,19 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
       autoScroll={{
+        canScroll: canScrollCalendar,
         threshold: {
-          x: 0.15,
-          y: 0.15,
+          x: 0.1,
+          y: 0.1,
         },
-        acceleration: 15,
-        interval: 5,
+        acceleration: 5,
+        interval: 16,
       }}
     >
       {/* Main Content Area */}
-      <div className="flex gap-4">
+      <div className="flex min-w-0 min-h-0 gap-4">
         {/* Collapsible Sidebar - Unassigned Orders */}
         <div
           className={`sidebar-container flex-shrink-0 overflow-hidden transition-all duration-300 ${sidebarExpanded ? 'w-[220px]' : 'w-12'}`}
@@ -517,7 +572,10 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
 
           {/* Sidebar Content */}
           {sidebarExpanded && (
-            <DroppableArea id="unreserved" className="p-3 min-h-[420px]">
+            <DroppableArea
+              id="unreserved"
+              className="p-3 min-h-[clamp(0px,calc(100dvh-340px),420px)] max-h-[calc(100dvh-340px)] overflow-y-auto overscroll-contain"
+            >
               <SortableContext
                 items={unreservedData.map(item => item.id)}
                 strategy={verticalListSortingStrategy}
@@ -549,7 +607,8 @@ export default function OrderItemFortnightCalendar({ refreshKey = 0, baseDate = 
         {/* Calendar Grid */}
         <div
           ref={calendarScrollRef}
-          className="calendar-grid min-w-0 min-h-0 flex-1 overflow-x-auto overflow-y-auto pear-scrollbar max-h-[calc(100dvh-280px)]"
+          className="calendar-grid min-w-0 min-h-0 h-[calc(100dvh-280px)] flex-1 overflow-x-auto overflow-y-auto pear-scrollbar max-h-[calc(100dvh-280px)]"
+          style={{ overscrollBehavior: 'none' }}
         >
           <div className="min-w-[2240px]">
             {/* Day Headers */}
