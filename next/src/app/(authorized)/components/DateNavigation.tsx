@@ -19,7 +19,7 @@ export default function DateNavigation({
   actionButton,
   rangeMode = 'week'
 }: DateNavigationProps) {
-  const daysToMove = rangeMode === 'week' ? 7 : 2;
+  const daysToMove = rangeMode === 'week' ? 7 : 1;
   const endOffset = rangeMode === 'week' ? 6 : 1;
 
   const handlePrevious = () => {

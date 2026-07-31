@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Order\Order;
 use App\Models\Order\Repository\OrderRepositoryInterface;
 use App\Models\Product\Product;
 use App\Models\User\User;
@@ -62,6 +63,79 @@ class OrderApiTest extends TestCase
         foreach ($endpoints as $endpoint) {
             $this->getJson($endpoint)->assertOk();
         }
+    }
+
+    public function test_prep_board_returns_order_notes_per_date_and_excludes_canceled_orders(): void
+    {
+        $this->actingAsUser();
+
+        $sameNameWithNotes = Order::create([
+            'customer_name' => '同名顧客',
+            'pickup_date' => '2026-07-05',
+            'status' => Order::STATUS_PENDING,
+            'notes' => "午前中に受け取り\n受付へ案内",
+        ]);
+        $sameNameWithNotes->orderItems()->create([
+            'product_id' => $this->productId,
+            'quantity' => 3,
+            'is_prepared' => true,
+        ]);
+
+        $sameNameWithoutNotes = Order::create([
+            'customer_name' => '同名顧客',
+            'pickup_date' => '2026-07-05',
+            'status' => Order::STATUS_PENDING,
+            'notes' => null,
+        ]);
+        $sameNameWithoutNotes->orderItems()->create([
+            'product_id' => $this->productId,
+            'quantity' => 1,
+        ]);
+
+        $longNotes = str_repeat('備', 300);
+        $nextDayOrder = Order::create([
+            'customer_name' => '翌日顧客',
+            'pickup_date' => '2026-07-06',
+            'status' => Order::STATUS_PENDING,
+            'notes' => $longNotes,
+        ]);
+        $nextDayOrder->orderItems()->create([
+            'product_id' => $this->productId,
+            'quantity' => 2,
+        ]);
+
+        $canceledOrder = Order::create([
+            'customer_name' => 'キャンセル顧客',
+            'pickup_date' => '2026-07-05',
+            'status' => Order::STATUS_CANCELED,
+            'notes' => '表示対象外',
+        ]);
+        $canceledOrder->orderItems()->create([
+            'product_id' => $this->productId,
+            'quantity' => 9,
+        ]);
+
+        $response = $this->getJson('/api/prep-board?target_date=2026-07-05')
+            ->assertOk();
+
+        $ordersByDate = $response->json('orders');
+        $this->assertSame(['2026-07-05', '2026-07-06'], array_keys($ordersByDate));
+
+        $ordersById = collect($ordersByDate['2026-07-05'])->keyBy('id');
+        $this->assertCount(2, $ordersById);
+        $this->assertArrayNotHasKey($canceledOrder->id, $ordersById->all());
+        $this->assertSame(
+            "午前中に受け取り\n受付へ案内",
+            $ordersById[$sameNameWithNotes->id]['notes']
+        );
+        $this->assertNull($ordersById[$sameNameWithoutNotes->id]['notes']);
+        $this->assertSame(3, $ordersById[$sameNameWithNotes->id]['items'][$this->productId]['quantity']);
+        $this->assertTrue($ordersById[$sameNameWithNotes->id]['items'][$this->productId]['is_prepared']);
+
+        $nextDayOrders = $ordersByDate['2026-07-06'];
+        $this->assertCount(1, $nextDayOrders);
+        $this->assertSame($nextDayOrder->id, $nextDayOrders[0]['id']);
+        $this->assertSame($longNotes, $nextDayOrders[0]['notes']);
     }
 
     public function test_register_unexpected_error_returns_generic_500(): void

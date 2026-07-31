@@ -58,7 +58,7 @@ export default function PrepBoardPage() {
   // 日付ごとの注文データを取得
   const getOrdersForDate = (dateKey: string): PrepBoardOrder[] => {
     if (!data) return [];
-    return data.orders[dateKey] || [];
+    return [...(data.orders[dateKey] || [])].sort((a, b) => a.id - b.id);
   };
 
   // 2日分の日付キー

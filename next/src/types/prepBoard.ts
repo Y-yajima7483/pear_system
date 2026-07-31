@@ -23,6 +23,7 @@ export interface PrepBoardOrderItem {
 export interface PrepBoardOrder {
   id: number;
   customer_name: string;
+  notes: string | null;
   status: number;
   items: Record<string, PrepBoardOrderItem>; // product_idをキーにしたマップ
 }

@@ -1,6 +1,8 @@
 'use client';
 
-import { useMemo, useCallback } from 'react';
+import { Fragment, useMemo, useCallback } from 'react';
+import { StickyNote } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { orderItemStatus } from '@/types/order';
 import type {
   PrepBoardVariety,
@@ -126,38 +128,64 @@ export default function PrepBoardMatrix({
           </thead>
           <tbody>
             {/* 顧客行 */}
-            {orders.map(order => (
-              <tr
-                key={order.id}
-                className={isOrderCompleted(order.status) ? 'prep-board-customer-row-completed' : ''}
-              >
-                <td className="customer-cell">
-                  <span className={isAllItemsPrepared(order) ? 'line-through text-gray-400' : ''}>
-                    {order.customer_name}
-                  </span>
-                </td>
-                {productColumns.map(col => {
-                  const item = order.items[String(col.product_id)];
-                  if (!item) {
-                    return (
-                      <td key={col.product_id} className="prep-board-status-cell">
-                        <span className="prep-board-empty-cell">−</span>
-                      </td>
-                    );
-                  }
-                  return (
-                    <td key={col.product_id} className="prep-board-status-cell">
-                      <button
-                        className={`prep-board-status-badge ${item.is_prepared ? 'ready' : 'pending'}`}
-                        onClick={() => handleCellClick(order.id, col.product_id, item.is_prepared)}
-                      >
-                        {item.quantity}
-                      </button>
+            {orders.map(order => {
+              const orderIsCompleted = isOrderCompleted(order.status);
+              const orderHasNotes = order.notes?.trim();
+
+              return (
+                <Fragment key={order.id}>
+                  <tr
+                    className={cn(orderIsCompleted && 'prep-board-customer-row-completed')}
+                  >
+                    <td className="customer-cell">
+                      <span className={cn(isAllItemsPrepared(order) && 'line-through text-gray-400')}>
+                        {order.customer_name}
+                      </span>
                     </td>
-                  );
-                })}
-              </tr>
-            ))}
+                    {productColumns.map(col => {
+                      const item = order.items[String(col.product_id)];
+                      if (!item) {
+                        return (
+                          <td key={col.product_id} className="prep-board-status-cell">
+                            <span className="prep-board-empty-cell">−</span>
+                          </td>
+                        );
+                      }
+                      return (
+                        <td key={col.product_id} className="prep-board-status-cell">
+                          <button
+                            className={cn(
+                              'prep-board-status-badge',
+                              item.is_prepared ? 'ready' : 'pending'
+                            )}
+                            onClick={() => handleCellClick(order.id, col.product_id, item.is_prepared)}
+                          >
+                            {item.quantity}
+                          </button>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                  {orderHasNotes && (
+                    <tr className="prep-board-order-notes-row">
+                      <td className="customer-cell prep-board-order-notes-label-cell">
+                        <span className="prep-board-order-notes-label">
+                          <StickyNote aria-hidden="true" size={16} />
+                          <span aria-hidden="true">備考</span>
+                          <span className="sr-only">{order.customer_name}の備考</span>
+                        </span>
+                      </td>
+                      <td
+                        className="prep-board-order-notes-content-cell"
+                        colSpan={productColumns.length}
+                      >
+                        <p className="prep-board-order-notes-content">{order.notes}</p>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              );
+            })}
 
             {/* 小計行 - 未準備 */}
             <tr className="prep-board-subtotal-row pending prep-board-subtotal-section-start">

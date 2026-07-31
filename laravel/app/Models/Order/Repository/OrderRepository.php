@@ -179,6 +179,7 @@ class OrderRepository implements OrderRepositoryInterface
             return [
                 'id' => $order->id,
                 'customer_name' => $order->customer_name,
+                'notes' => $order->notes,
                 'pickup_date' => $order->pickup_date,
                 'status' => $order->status,
                 'items' => $order->orderItems->map(function ($item) {

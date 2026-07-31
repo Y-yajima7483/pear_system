@@ -1658,6 +1658,62 @@ input[type="time"]::-webkit-clear-button {
   z-index: 20;
 }
 
+/* 顧客ごとの備考行 */
+.prep-board-order-notes-row td {
+  @apply text-left align-top;
+  padding: 8px !important;
+}
+
+.prep-board-order-notes-row .prep-board-order-notes-label-cell {
+  min-width: 120px;
+  max-width: 150px;
+  background: var(--gray-50);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  z-index: 11;
+}
+
+.prep-board-order-notes-label {
+  @apply inline-flex items-center gap-1.5;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.prep-board-order-notes-label svg {
+  flex-shrink: 0;
+}
+
+.prep-board-order-notes-content-cell {
+  background: var(--bg);
+  color: var(--text-secondary);
+}
+
+.prep-board-order-notes-content {
+  @apply m-0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  text-decoration: none;
+  opacity: 1;
+}
+
+@media (min-width: 768px) and (pointer: coarse) {
+  .prep-board-order-notes-row td {
+    padding: 10px 12px !important;
+  }
+
+  .prep-board-order-notes-label,
+  .prep-board-order-notes-content {
+    font-size: var(--text-base);
+  }
+
+  .prep-board-order-notes-content {
+    line-height: 1.55;
+  }
+}
+
 /* ステータスセル */
 .prep-board-status-cell {
   min-width: 56px;

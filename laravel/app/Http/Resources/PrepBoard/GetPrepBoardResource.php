@@ -46,6 +46,7 @@ class GetPrepBoardResource extends AbstractResource
                     $orders[$dateKey][] = [
                         'id' => $order['id'],
                         'customer_name' => $order['customer_name'],
+                        'notes' => $order['notes'] ?? null,
                         'status' => $order['status'],
                         'items' => $itemsMap,
                     ];
